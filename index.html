@@ -1,0 +1,654 @@
+<title>LIBERTY FOOD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: bandeau sombre en haut, menu en cartes à gauche, panier + formulaire collant à droite (empilés sur mobile). */
+:root{
+  --bg:#F5F3F1; --card:#FFFFFF; --ink:#1E1A18; --muted:#6B625C; --line:#E3DDD8;
+  --flame:#D62E1B; --flame-ink:#FFFFFF; --sun:#FFB81C; --band:#1E1A18; --band-ink:#FFF4DE;
+  --tint:#FBE9E5; --good:#1E8A4A; --warn:#B36B00; --bad:#B3261E;
+  --f-display:'Bricolage Grotesque','Arial Black',system-ui,sans-serif;
+  --f-body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151211; --card:#211C1A; --ink:#F4EEEA; --muted:#A99F98; --line:#3A322E;
+  --flame:#FF5A45; --flame-ink:#1A0A07; --sun:#FFC94D; --band:#0D0A09; --band-ink:#FFF4DE;
+  --tint:#3A1D18; --good:#4CC57C; --warn:#F0A63A; --bad:#FF7A6E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151211; --card:#211C1A; --ink:#F4EEEA; --muted:#A99F98; --line:#3A322E;
+  --flame:#FF5A45; --flame-ink:#1A0A07; --sun:#FFC94D; --band:#0D0A09; --band-ink:#FFF4DE;
+  --tint:#3A1D18; --good:#4CC57C; --warn:#F0A63A; --bad:#FF7A6E; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--band);z-index:10}
+button,input,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto}
+
+/* en-tête */
+.top{background:var(--band);color:var(--band-ink);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:14px max(16px,env(safe-area-inset-left,0px));position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font:800 24px/1 var(--f-display);letter-spacing:.02em;color:var(--sun)}
+.brand span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.1);padding:3px;border-radius:999px}
+.tabs button{border:0;background:none;color:inherit;padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:700;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--sun);color:#1E1A18}
+.badge{display:none;background:var(--flame);color:var(--flame-ink);border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px}
+
+.hero{padding:28px 0 8px}
+.hero h1{font-size:clamp(28px,5vw,44px);line-height:1.05;font-weight:800}
+.hero p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.mode{display:inline-block;margin-top:12px;font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:3px 8px}
+
+/* menu */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start;padding-top:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pic{height:96px;border-radius:10px;background:var(--tint);display:grid;place-items:center;font-size:54px}
+.item h3{font-size:18px;font-weight:600}
+.item p{margin:0;color:var(--muted);font-size:13px;flex:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.price{font-weight:700;font-variant-numeric:tabular-nums}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--flame);color:var(--flame-ink)}
+.btn:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.good{background:var(--good);color:#fff}
+.btn.small{padding:7px 12px;font-size:13px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{border:0;background:var(--bg);width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--ink)}
+.step span{min-width:30px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* panier */
+.side{position:sticky;top:calc(76px + env(safe-area-inset-top,0px));background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.side h2{font-size:22px}
+.lines{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.lines li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.lines .nm{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.lines .sub{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;border-top:1px solid var(--line);padding-top:12px;font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.hint{font-size:12px;color:var(--muted)}
+.cartbar{position:fixed;left:0;right:0;bottom:0;display:none;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));background:var(--band);z-index:6}
+.cartbar button{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;border-radius:12px;background:var(--sun);color:#1E1A18;padding:13px 16px;font-weight:700;font-size:16px;cursor:pointer}
+
+/* confirmation */
+.ok{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.ok .num{font:800 34px/1 var(--f-display);color:var(--flame)}
+.track{display:flex;flex-direction:column;gap:8px;width:100%;margin:0;padding:0;list-style:none}
+.track li{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.track li i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.track li.done{color:var(--ink)}
+.track li.done i{background:var(--good);border-color:var(--good)}
+.track li.now{color:var(--ink);font-weight:700}
+.track li.now i{background:var(--sun);border-color:var(--sun)}
+
+/* restaurant */
+.panel{padding-top:20px;display:flex;flex-direction:column;gap:18px}
+.gate{max-width:380px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font:800 26px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.alert{display:none;background:var(--flame);color:var(--flame-ink);border-radius:12px;padding:14px 16px;font-weight:700;font-size:17px;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.012);filter:brightness(1.15)}}
+@media (prefers-reduced-motion:reduce){.alert{animation:none}}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.ord{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ord.fresh{border:2px solid var(--flame)}
+.ord header{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ord .no{font:800 20px/1 var(--f-display)}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--tint);color:var(--flame)}
+.pill.preparation{background:#FFF0CC;color:var(--warn)}
+.pill.prete{background:#DDF3E5;color:var(--good)}
+.pill.livree{background:var(--bg);color:var(--muted)}
+.pill.annulee{background:var(--bg);color:var(--bad)}
+.who{font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.meta a{color:var(--flame);font-weight:700}
+.ord ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:20;font-weight:500;max-width:90vw}
+
+@media (max-width:860px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .side{position:static}
+  .cartbar.on{display:block}
+}
+@media (max-width:420px){.two{grid-template-columns:1fr}.brand span{display:none}}
+/* ticket d'impression */
+#ticket{display:none}
+.stat[data-f]{cursor:pointer}
+.stat[data-f]:hover{border-color:var(--ink)}
+@media print{
+  @page{margin:5mm}
+  body>*:not(#ticket){display:none!important}
+  body::before{display:none!important}
+  body{background:#fff!important;padding:0!important}
+  #ticket{display:block;width:76mm;margin:0 auto;color:#000;background:#fff;font:13px/1.35 'Courier New',monospace}
+  #ticket h1{font:800 20px/1.2 sans-serif;text-align:center;margin:0}
+  #ticket .c{text-align:center}
+  #ticket hr{border:0;border-top:1px dashed #000;margin:6px 0}
+  #ticket p{margin:2px 0}
+  #ticket .big{font-size:16px;font-weight:700}
+  #ticket .ln{display:flex;justify-content:space-between;gap:8px}
+  #ticket .tot{font-size:17px;font-weight:800}
+}
+/* mode test côte à côte */
+body.demo .tabs{display:none}
+body.demo main.wrap{max-width:1500px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+body.demo .grid{grid-template-columns:minmax(0,1fr)}
+body.demo .side{position:static}
+body.demo #view-resto{border-left:2px dashed var(--line,#ccc);padding-left:24px}
+@media (max-width:900px){body.demo main.wrap{grid-template-columns:minmax(0,1fr)}body.demo #view-resto{border-left:0;padding-left:0}}
+</style>
+
+<div class="top"><div class="wrap">
+  <div class="brand"><b>LIBERTY FOOD</b><span>Grand Mbour</span></div>
+  <div class="tabs" role="tablist">
+    <button id="tab-client" role="tab" aria-selected="true">Commander</button>
+    <button id="tab-resto" role="tab" aria-selected="false">Restaurant<span class="badge" id="tabBadge">0</span></button>
+  </div>
+</div></div>
+
+<main class="wrap">
+
+<!-- ESPACE CLIENT -->
+<section id="view-client">
+  <div class="hero">
+    <h1>Commandez chez Liberty Food, on prépare et on vous livre.</h1>
+    <p>Choisissez vos plats, indiquez où vous êtes à Mbour, et le restaurant est prévenu tout de suite. Paiement à la livraison.</p>
+    <span class="mode" id="modeNote">Connexion…</span>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="chips" id="chips" role="group" aria-label="Catégories"></div>
+      <div class="menu" id="menu"></div>
+    </div>
+    <aside class="side" id="side">
+      <div id="cartBox">
+        <h2>Votre commande</h2>
+        <ul class="lines" id="lines"></ul>
+        <div class="total"><span>Total</span><span id="total">0 FCFA</span></div>
+      </div>
+      <form id="form" novalidate autocomplete="on">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="two">
+            <div class="field"><label for="f-nom">Nom</label><input id="f-nom" name="family-name" autocomplete="family-name"></div>
+            <div class="field"><label for="f-prenom">Prénom</label><input id="f-prenom" name="given-name" autocomplete="given-name"></div>
+          </div>
+          <div class="field"><label for="f-tel">Téléphone</label><input id="f-tel" name="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="77 000 00 00"></div>
+          <div class="field"><label for="f-loc">Localisation exacte</label>
+            <textarea id="f-loc" rows="3" placeholder="Quartier, rue, numéro de maison, point de repère (ex. en face de la pharmacie)"></textarea>
+            <button type="button" class="btn ghost small" id="gps" style="align-self:flex-start;margin-top:4px">📍 Utiliser ma position GPS</button>
+            <span class="hint" id="gpsNote"></span>
+          </div>
+          <div class="field"><label for="f-note">Précisions (facultatif)</label><input id="f-note" placeholder="Sans piment, sonner deux fois…"></div>
+          <div class="err" id="err" role="alert"></div>
+          <button class="btn" id="send" type="submit">Envoyer ma commande</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+</section>
+
+<!-- ESPACE RESTAURANT -->
+<section id="view-resto" hidden>
+  <div class="gate" id="gate">
+    <h2>Espace restaurant</h2>
+    <div class="field" id="pinBox"><label for="pin">Code d'accès</label><input id="pin" type="password" inputmode="numeric" autocomplete="off"><span class="hint" id="pinHint"></span></div>
+    <div id="mailBox" hidden style="display:flex;flex-direction:column;gap:12px">
+      <div class="field"><label for="mail">Email</label><input id="mail" type="email" autocomplete="username"></div>
+      <div class="field"><label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password"></div>
+    </div>
+    <div class="err" id="gateErr"></div>
+    <button class="btn" id="unlock">Ouvrir</button>
+  </div>
+
+  <div class="panel" id="panel" hidden>
+    <div class="alert" id="alert"></div>
+    <div class="bar">
+      <button class="btn" id="soundBtn">🔔 Activer les alertes sonores</button>
+      <button class="btn ghost" id="simBtn">Simuler une commande (test)</button>
+      <button class="btn ghost" id="resetBtn" hidden>Effacer les commandes de test</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sNew">0</b><span>À accepter</span></div>
+      <div class="stat" data-f="acc" title="Voir les commandes acceptées"><b id="sAcc">0</b><span>Commandes acceptées</span></div>
+      <div class="stat"><b id="sDay">0</b><span>Commandes aujourd'hui</span></div>
+      <div class="stat"><b id="sCa">0</b><span>Chiffre du jour (FCFA)</span></div>
+    </div>
+    <div class="chips" id="fchips" role="group" aria-label="Filtre">
+      <button class="chip" data-f="cours" aria-pressed="true">En cours</button>
+      <button class="chip" data-f="new" aria-pressed="false">À accepter <span id="cNew"></span></button>
+      <button class="chip" data-f="acc" aria-pressed="false">Acceptées <span id="cAcc"></span></button>
+      <button class="chip" data-f="fin" aria-pressed="false">Terminées</button>
+    </div>
+    <div class="orders" id="orders"></div>
+  </div>
+</section>
+</main>
+
+<div class="cartbar" id="cartbar"><button id="cartbtn"><span id="cbN">Voir mon panier</span><span id="cbT"></span></button></div>
+
+<div id="ticket" aria-hidden="true"></div>
+<script>
+/* ===== Réglages ===== */
+var CFG = {
+  RESTAURANT_PIN: '1234',   // code d'accès de l'espace restaurant (à changer)
+  SUPABASE_URL: '',         // laisser vide pour le mode test ; voir supabase-setup.sql pour la mise en ligne
+  SUPABASE_KEY: ''
+};
+
+var MENU = [
+  {id:'pz1', cat:'Pizzas', emoji:'🍕', name:'Pizza Margherita', desc:'Sauce tomate, mozzarella, basilic frais.', price:4500},
+  {id:'pz2', cat:'Pizzas', emoji:'🍕', name:'Pizza 4 Fromages', desc:'Mozzarella, emmental, chèvre et bleu.', price:6500},
+  {id:'tc1', cat:'Tacos', emoji:'🌮', name:'Tacos Poulet', desc:'Poulet mariné, frites, sauce fromagère.', price:2500},
+  {id:'tc2', cat:'Tacos', emoji:'🌮', name:'Tacos Viande Hachée', desc:'Viande hachée, cheddar, sauce algérienne.', price:3000},
+  {id:'sw1', cat:'Sandwichs', emoji:'🥪', name:'Sandwich Poulet Crudités', desc:'Poulet grillé, salade, tomate, mayonnaise.', price:2000},
+  {id:'sw2', cat:'Sandwichs', emoji:'🥪', name:'Sandwich Thon Mayonnaise', desc:'Thon, oignon, olives, œuf dur.', price:1500},
+  {id:'hb1', cat:'Burgers', emoji:'🍔', name:'Hamburger Classique', desc:'Steak, salade, tomate, cornichon, ketchup.', price:3000},
+  {id:'hb2', cat:'Burgers', emoji:'🍔', name:'Cheeseburger Double', desc:'Deux steaks, double cheddar, oignons grillés.', price:4500},
+  {id:'fr1', cat:'Accompagnements', emoji:'🍟', name:'Frites Maison', desc:'Pommes de terre fraîches, bien croustillantes.', price:1000},
+  {id:'bs1', cat:'Boissons', emoji:'🍹', name:'Jus de Bissap Glacé', desc:'Fleur d\'hibiscus, menthe, bien frais.', price:500}
+];
+var CATS = ['Tous','Pizzas','Tacos','Sandwichs','Burgers','Accompagnements','Boissons'];
+var STATUS_LABEL = {nouvelle:'Nouvelle', preparation:'En préparation', prete:'Prête', livree:'Livrée', annulee:'Annulée'};
+
+/* ===== Outils ===== */
+var $ = function(s){return document.querySelector(s)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(n){return Number(n).toLocaleString('fr-FR').replace(/[  ]/g,' ')+' FCFA'}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function toast(msg){
+  var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  setTimeout(function(){t.remove()},3500);
+}
+
+/* ===== Stockage des commandes (3 modes) ===== */
+var memOrders=[];
+function localStore(){
+  var K='lf_orders_v1', subs=[];
+  function read(){try{var v=localStorage.getItem(K);return v?JSON.parse(v):memOrders}catch(e){return memOrders}}
+  function write(a){memOrders=a;try{localStorage.setItem(K,JSON.stringify(a))}catch(e){}subs.forEach(function(f){f(a)})}
+  window.addEventListener('storage',function(e){if(e.key===K)subs.forEach(function(f){f(read())})});
+  return {
+    name:'local',
+    create:function(o){var a=read().slice();a.push(o);write(a);return Promise.resolve()},
+    update:function(id,st){write(read().map(function(o){return o.id===id?Object.assign({},o,{status:st}):o}));return Promise.resolve()},
+    reset:function(){write([])},
+    onOrders:function(cb){subs.push(cb);cb(read());var t=setInterval(function(){cb(read())},3000);
+      return function(){subs=subs.filter(function(f){return f!==cb});clearInterval(t)}},
+    watch:function(id,cb){var t=setInterval(function(){var o=read().filter(function(x){return x.id===id})[0];if(o)cb(o.status)},2500);return function(){clearInterval(t)}}
+  };
+}
+function dbStore(db){
+  var col=db.collection('orders');
+  return {
+    name:'db',
+    create:function(o){return col.doc(o.id).set(o)},
+    update:function(id,st){return col.doc(id).update({status:st})},
+    onOrders:function(cb){return col.orderBy('createdAt','desc').limit(300).onSnapshot(function(s){cb(s.docs.map(function(d){return d.data()}))},function(){})},
+    watch:function(id,cb){return col.doc(id).onSnapshot(function(s){var d=s.data();if(d)cb(d.status)},function(){})}
+  };
+}
+function sbStore(){
+  var U=CFG.SUPABASE_URL.replace(/\/$/,''),K=CFG.SUPABASE_KEY,token=null;
+  function H(auth){return {apikey:K,Authorization:'Bearer '+((auth&&token)?token:K),'Content-Type':'application/json'}}
+  function toOrder(r){return Object.assign({},r.data,{id:r.id,number:r.number,status:r.status,createdAt:new Date(r.created_at).getTime()})}
+  return {
+    name:'supabase', needsLogin:true,
+    login:function(email,pw){
+      return fetch(U+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw})})
+        .then(function(r){if(!r.ok)throw new Error('login');return r.json()}).then(function(j){token=j.access_token});
+    },
+    create:function(o){
+      var body={id:o.id,number:o.number,status:o.status,data:{customer:o.customer,items:o.items,total:o.total,test:!!o.test}};
+      return fetch(U+'/rest/v1/orders',{method:'POST',headers:Object.assign(H(false),{Prefer:'return=minimal'}),body:JSON.stringify(body)})
+        .then(function(r){if(!r.ok)throw new Error('create')});
+    },
+    update:function(id,st){
+      return fetch(U+'/rest/v1/orders?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:H(true),body:JSON.stringify({status:st})})
+        .then(function(r){if(!r.ok)throw new Error('update')});
+    },
+    onOrders:function(cb){
+      function tick(){fetch(U+'/rest/v1/orders?select=*&order=created_at.desc&limit=200',{headers:H(true)})
+        .then(function(r){return r.ok?r.json():null}).then(function(a){if(a)cb(a.map(toOrder))}).catch(function(){})}
+      tick();var t=setInterval(tick,4000);return function(){clearInterval(t)};
+    },
+    watch:function(id,cb){
+      function tick(){fetch(U+'/rest/v1/rpc/order_status',{method:'POST',headers:H(false),body:JSON.stringify({oid:id})})
+        .then(function(r){return r.ok?r.json():null}).then(function(s){if(s)cb(s)}).catch(function(){})}
+      tick();var t=setInterval(tick,5000);return function(){clearInterval(t)};
+    }
+  };
+}
+
+var store = localStore();
+var storeReady = (async function(){
+  if(CFG.SUPABASE_URL){store=sbStore();return}
+  try{
+    if(window.claude&&window.claude.use){
+      var db=await window.claude.use('db'), user=await window.claude.use('user');
+      if(db&&user){
+        var can=await user.can('data.write'), own=await user.isOwner();
+        if(can===true||own===true){store=dbStore(db)}
+      }
+    }
+  }catch(e){}
+})();
+storeReady.then(function(){
+  var n=$('#modeNote');
+  n.textContent = store.name==='supabase' ? 'Commandes en ligne' :
+    store.name==='db' ? 'Mode test : commandes partagées entre vos appareils connectés' :
+    'Mode test : les commandes restent sur cet appareil';
+  $('#resetBtn').hidden = store.name!=='local';
+  $('#mailBox').hidden = !store.needsLogin;
+  $('#pinBox').hidden = !!store.needsLogin;
+  $('#mailBox').style.display = store.needsLogin?'flex':'none';
+  if(!store.needsLogin){
+    $('#pinHint').textContent='Mode test : le code est '+CFG.RESTAURANT_PIN+'.';
+    if(location.hash!=='#demo')n.insertAdjacentHTML('beforeend',' · <a href="#demo" onclick="setTimeout(function(){location.reload()},0)">Voir client + restaurant côte à côte</a>');
+  }
+});
+
+/* ===== Client : menu et panier ===== */
+var cart = {}, cat = 'Tous', lastOrderUnsub = null;
+
+function renderChips(){
+  $('#chips').innerHTML = CATS.map(function(c){return '<button class="chip" data-c="'+esc(c)+'" aria-pressed="'+(c===cat)+'">'+esc(c)+'</button>'}).join('');
+}
+function renderMenu(){
+  var list = MENU.filter(function(m){return cat==='Tous'||m.cat===cat});
+  $('#menu').innerHTML = list.map(function(m){
+    var q = cart[m.id]||0;
+    var ctl = q ? '<span class="step"><button data-d="-1" data-id="'+m.id+'" aria-label="Retirer un '+esc(m.name)+'">−</button><span>'+q+'</span><button data-d="1" data-id="'+m.id+'" aria-label="Ajouter un '+esc(m.name)+'">+</button></span>'
+                : '<button class="btn small" data-d="1" data-id="'+m.id+'">Ajouter</button>';
+    return '<article class="item"><div class="pic" aria-hidden="true">'+m.emoji+'</div><h3>'+esc(m.name)+'</h3><p>'+esc(m.desc)+'</p><div class="row"><span class="price">'+fmt(m.price)+'</span>'+ctl+'</div></article>';
+  }).join('');
+}
+function cartItems(){
+  return MENU.filter(function(m){return cart[m.id]}).map(function(m){return {id:m.id,name:m.name,emoji:m.emoji,price:m.price,qty:cart[m.id]}});
+}
+function cartTotals(){var it=cartItems();return {n:it.reduce(function(a,i){return a+i.qty},0),t:it.reduce(function(a,i){return a+i.qty*i.price},0)}}
+function renderCart(){
+  var it=cartItems(), tt=cartTotals();
+  $('#lines').innerHTML = it.length ? it.map(function(i){
+    return '<li><span class="nm">'+i.emoji+' '+esc(i.name)+'</span><span class="step"><button data-d="-1" data-id="'+i.id+'" aria-label="Retirer">−</button><span>'+i.qty+'</span><button data-d="1" data-id="'+i.id+'" aria-label="Ajouter">+</button></span><span class="sub">'+i.qty+' × '+fmt(i.price)+'</span><span class="sub" style="text-align:right">'+fmt(i.qty*i.price)+'</span></li>';
+  }).join('') : '<li class="empty">Votre panier est vide. Ajoutez un plat depuis le menu.</li>';
+  $('#total').textContent = fmt(tt.t);
+  var bar=$('#cartbar');
+  bar.classList.toggle('on', tt.n>0);
+  $('#cbN').textContent = tt.n+' article'+(tt.n>1?'s':'')+' · Voir mon panier';
+  $('#cbT').textContent = fmt(tt.t);
+}
+function changeQty(id,d){
+  var q=(cart[id]||0)+d; if(q<=0)delete cart[id]; else cart[id]=Math.min(q,50);
+  renderMenu(); renderCart();
+}
+$('#chips').addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(!b)return;cat=b.dataset.c;renderChips();renderMenu()});
+function qtyClick(e){var b=e.target.closest('[data-d]');if(!b)return;changeQty(b.dataset.id,Number(b.dataset.d))}
+$('#menu').addEventListener('click',qtyClick);
+$('#lines').addEventListener('click',qtyClick);
+$('#cartbtn').addEventListener('click',function(){$('#side').scrollIntoView({behavior:'smooth',block:'start'})});
+
+/* position GPS (fonctionne quand la page est ouverte dans un navigateur normal) */
+var gpsCoords=null;
+$('#gps').addEventListener('click',function(){
+  var note=$('#gpsNote');
+  if(!navigator.geolocation){note.textContent='Position indisponible : décrivez votre adresse dans le champ ci-dessus.';return}
+  note.textContent='Recherche de votre position…';
+  try{
+    navigator.geolocation.getCurrentPosition(function(p){
+      gpsCoords={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};
+      note.textContent='Position GPS enregistrée. Ajoutez quand même un repère dans l\'adresse.';
+    },function(){note.textContent='Position refusée ou indisponible : décrivez votre adresse dans le champ ci-dessus.'},{enableHighAccuracy:true,timeout:12000});
+  }catch(e){note.textContent='Position indisponible : décrivez votre adresse dans le champ ci-dessus.'}
+});
+
+/* envoi de la commande */
+function newOrder(customer,items,test){
+  var id = (window.crypto&&crypto.randomUUID)?crypto.randomUUID():('o'+Date.now()+Math.random().toString(16).slice(2));
+  var total=items.reduce(function(a,i){return a+i.qty*i.price},0);
+  return {id:id,number:'LF-'+String(Math.floor(1000+Math.random()*9000)),status:'nouvelle',createdAt:Date.now(),customer:customer,items:items,total:total,test:!!test};
+}
+$('#form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var err=$('#err'); err.textContent='';
+  var c={nom:$('#f-nom').value.trim(),prenom:$('#f-prenom').value.trim(),tel:$('#f-tel').value.trim(),loc:$('#f-loc').value.trim(),note:$('#f-note').value.trim(),gps:gpsCoords};
+  var items=cartItems();
+  if(!items.length){err.textContent='Ajoutez au moins un plat à votre commande.';return}
+  if(!c.nom||!c.prenom){err.textContent='Indiquez votre nom et votre prénom.';return}
+  if(c.tel.replace(/\D/g,'').length<8){err.textContent='Indiquez un numéro de téléphone valide, par exemple 77 000 00 00.';return}
+  if(c.loc.length<8){err.textContent='Décrivez votre localisation exacte : quartier, rue et point de repère.';return}
+  var btn=$('#send'); btn.disabled=true; btn.textContent='Envoi en cours…';
+  try{
+    await storeReady;
+    var o=newOrder(c,items,false);
+    await store.create(o);
+    lsSet('lf_client',JSON.stringify({nom:c.nom,prenom:c.prenom,tel:c.tel}));
+    cart={}; renderMenu(); renderCart(); showConfirmation(o);
+  }catch(x){
+    err.textContent='La commande n\'a pas pu être envoyée. Vérifiez votre connexion et réessayez.';
+    btn.disabled=false; btn.textContent='Envoyer ma commande';
+  }
+});
+
+var STEPS=[['nouvelle','Commande reçue'],['preparation','En préparation'],['prete','Prête, en route vers vous'],['livree','Livrée']];
+function showConfirmation(o){
+  if(lastOrderUnsub){lastOrderUnsub();lastOrderUnsub=null}
+  $('#side').innerHTML='<div class="ok"><span class="pill">Commande envoyée</span><div class="num">'+esc(o.number)+'</div>'+
+    '<div>Merci '+esc(o.customer.prenom)+'. Le restaurant a reçu votre commande. Gardez votre téléphone à portée de main, on peut vous appeler.</div>'+
+    '<ul class="lines" style="width:100%">'+o.items.map(function(i){return '<li><span class="nm">'+i.emoji+' '+i.qty+' × '+esc(i.name)+'</span><span class="sub">'+fmt(i.qty*i.price)+'</span></li>'}).join('')+'</ul>'+
+    '<div class="total" style="width:100%"><span>À payer à la livraison</span><span>'+fmt(o.total)+'</span></div>'+
+    '<ul class="track" id="track"></ul><button class="btn ghost" id="again">Passer une autre commande</button></div>';
+  function paint(st){
+    var idx=STEPS.map(function(s){return s[0]}).indexOf(st);
+    if(st==='annulee'){$('#track').innerHTML='<li class="now"><i></i>Commande annulée par le restaurant. Appelez-nous pour plus d\'informations.</li>';return}
+    $('#track').innerHTML=STEPS.map(function(s,i){return '<li class="'+(i<idx||st==='livree'?'done':(i===idx?'now':''))+'"><i></i>'+s[1]+'</li>'}).join('');
+  }
+  paint('nouvelle');
+  lastOrderUnsub=store.watch(o.id,paint);
+  $('#again').addEventListener('click',function(){location.reload()});
+  $('#side').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===== Restaurant ===== */
+var orders=[], known={}, firstLoad=true, soundOn=false, actx=null, loopT=null, unsubOrders=null, filt='cours', titleT=null, baseTitle='LIBERTY FOOD';
+
+function tone(f,t0,d){
+  var o=actx.createOscillator(),g=actx.createGain();
+  o.type='sine';o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(0.4,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  o.connect(g);g.connect(actx.destination);o.start(t0);o.stop(t0+d+0.05);
+}
+function ring(){
+  if(!actx)return;
+  try{var t=actx.currentTime;[[988,0],[1319,.25],[988,.7],[1319,.95]].forEach(function(p){tone(p[0],t+p[1],.4)})}catch(e){}
+}
+function speak(){
+  try{var u=new SpeechSynthesisUtterance('Nouvelle commande');u.lang='fr-FR';speechSynthesis.speak(u)}catch(e){}
+}
+function enableSound(){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.resume)actx.resume();
+    soundOn=true; ring(); updateSoundBtn(); updateAlertLoop();
+  }catch(e){toast('Le son n\'est pas disponible sur ce navigateur.')}
+}
+function updateSoundBtn(){
+  var b=$('#soundBtn');
+  b.textContent = soundOn ? '🔔 Alertes sonores activées (toucher pour couper)' : '🔕 Activer les alertes sonores';
+  b.className = soundOn ? 'btn good' : 'btn';
+}
+$('#soundBtn').addEventListener('click',function(){
+  if(soundOn){soundOn=false;updateSoundBtn();updateAlertLoop()}else enableSound();
+});
+
+function pending(){return orders.filter(function(o){return o.status==='nouvelle'}).length}
+function updateAlertLoop(){
+  var n=pending();
+  $('#tabBadge').style.display = n? 'inline-block':'none'; $('#tabBadge').textContent=n;
+  var al=$('#alert');
+  al.style.display = n? 'block':'none';
+  al.textContent = n? '🔔 '+n+' nouvelle'+(n>1?'s':'')+' commande'+(n>1?'s':'')+' à accepter'+(soundOn?'':' · activez le son pour être alerté') : '';
+  if(n&&soundOn){ if(!loopT){loopT=setInterval(function(){if(pending()&&soundOn)ring()},6000)} }
+  else if(loopT){clearInterval(loopT);loopT=null}
+  if(n){ if(!titleT){var on=false;titleT=setInterval(function(){on=!on;document.title=on?'🔔 ('+pending()+') Nouvelle commande':baseTitle},1000)} }
+  else if(titleT){clearInterval(titleT);titleT=null;document.title=baseTitle}
+}
+
+function onOrders(list){
+  orders=list.slice().sort(function(a,b){return b.createdAt-a.createdAt});
+  var fresh=orders.filter(function(o){return o.status==='nouvelle'&&!known[o.id]});
+  orders.forEach(function(o){known[o.id]=1});
+  if(!firstLoad&&fresh.length){
+    if(soundOn){ring();setTimeout(speak,1400)}
+    toast('Nouvelle commande de '+fresh[0].customer.prenom+' '+fresh[0].customer.nom);
+  }
+  firstLoad=false;
+  renderOrders(); updateAlertLoop();
+}
+function ago(ts){var m=Math.round((Date.now()-ts)/60000);if(m<1)return 'à l\'instant';if(m<60)return 'il y a '+m+' min';var h=Math.floor(m/60);return 'il y a '+h+' h '+(m%60)+' min'}
+function mapLink(o){
+  var c=o.customer;
+  var q = c.gps ? c.gps.lat+','+c.gps.lng : encodeURIComponent(c.loc+', Mbour, Sénégal');
+  return 'https://www.google.com/maps/search/?api=1&query='+q;
+}
+function waLink(o){
+  var d=String(o.customer.tel).replace(/\D/g,'');
+  if(d.length===9)d='221'+d;
+  return 'https://wa.me/'+d;
+}
+function renderOrders(){
+  var start=new Date();start.setHours(0,0,0,0);
+  var today=orders.filter(function(o){return o.createdAt>=start.getTime()});
+  $('#sNew').textContent=pending();
+  $('#sDay').textContent=today.length;
+  $('#sCa').textContent=today.filter(function(o){return o.status!=='annulee'}).reduce(function(a,o){return a+o.total},0).toLocaleString('fr-FR').replace(/[  ]/g,' ');
+  var nAcc=orders.filter(function(o){return o.status==='preparation'||o.status==='prete'}).length;
+  $('#sAcc').textContent=nAcc;$('#cAcc').textContent=nAcc?'('+nAcc+')':'';
+  $('#cNew').textContent=pending()?'('+pending()+')':'';
+  var list=orders.filter(function(o){
+    var st=o.status;
+    if(filt==='fin')return st==='livree'||st==='annulee';
+    if(filt==='new')return st==='nouvelle';
+    if(filt==='acc')return st==='preparation'||st==='prete';
+    return st!=='livree'&&st!=='annulee';
+  });
+  var EMPTY={fin:'Aucune commande terminée pour le moment.',new:'Aucune nouvelle commande à accepter.',acc:'Aucune commande acceptée en ce moment.',cours:'Aucune commande en cours. Les nouvelles commandes apparaîtront ici avec un signal sonore.'};
+  if(!list.length){
+    $('#orders').innerHTML='<div class="empty" style="grid-column:1/-1">'+EMPTY[filt]+'</div>';return;
+  }
+  $('#orders').innerHTML=list.map(function(o){
+    var c=o.customer, acts='';
+    if(o.status==='nouvelle')acts='<button class="btn small" data-a="preparation" data-id="'+o.id+'">Accepter et préparer</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Refuser</button>';
+    else if(o.status==='preparation')acts='<button class="btn small" data-a="prete" data-id="'+o.id+'">Prête, en livraison</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Annuler</button>';
+    else if(o.status==='prete')acts='<button class="btn good small" data-a="livree" data-id="'+o.id+'">Livrée</button>';
+    return '<article class="ord'+(o.status==='nouvelle'?' fresh':'')+'">'+
+      '<header><span class="no">'+esc(o.number)+(o.test?' <small style="font-size:11px;color:var(--muted)">TEST</small>':'')+'</span><span class="pill '+o.status+'">'+STATUS_LABEL[o.status]+'</span></header>'+
+      '<div class="who">'+esc(c.prenom)+' '+esc(c.nom)+'</div>'+
+      '<div class="meta">Tél. '+esc(c.tel)+' · <a href="'+waLink(o)+'" target="_blank" rel="noopener">WhatsApp</a></div>'+
+      '<div class="meta">📍 '+esc(c.loc)+' · <a href="'+mapLink(o)+'" target="_blank" rel="noopener">Ouvrir la carte</a>'+(c.gps?' (GPS)':'')+'</div>'+
+      (c.note?'<div class="meta">📝 '+esc(c.note)+'</div>':'')+
+      '<ul>'+o.items.map(function(i){return '<li><b>'+i.qty+' ×</b> '+i.emoji+' '+esc(i.name)+'</li>'}).join('')+'</ul>'+
+      '<div class="row"><span class="meta">'+ago(o.createdAt)+'</span><span class="price">'+fmt(o.total)+'</span></div>'+
+      '<div class="acts">'+acts+'<button class="btn ghost small" data-p="'+o.id+'">🖨️ Imprimer</button></div></article>';
+  }).join('');
+}
+$('#orders').addEventListener('click',async function(e){
+  var b=e.target.closest('[data-a]');if(!b)return;
+  b.disabled=true;
+  try{await store.update(b.dataset.id,b.dataset.a)}catch(x){toast('Le changement n\'a pas été enregistré. Réessayez.');b.disabled=false}
+});
+function printOrder(o){
+  var c=o.customer,d=new Date(o.createdAt);
+  var when=d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  $('#ticket').innerHTML='<h1>LIBERTY FOOD</h1><p class="c">Grand Mbour</p><hr>'+
+    '<p class="big">Commande '+esc(o.number)+'</p><p>'+when+'</p><hr>'+
+    '<p class="big">'+esc(c.prenom)+' '+esc(c.nom)+'</p><p>Tél : '+esc(c.tel)+'</p>'+
+    '<p><b>Adresse :</b> '+esc(c.loc)+'</p>'+(c.gps?'<p>GPS : '+c.gps.lat+', '+c.gps.lng+'</p>':'')+
+    (c.note?'<p><b>Précisions :</b> '+esc(c.note)+'</p>':'')+'<hr>'+
+    o.items.map(function(i){return '<div class="ln"><span>'+i.qty+' x '+esc(i.name)+'</span><span>'+fmt(i.qty*i.price)+'</span></div>'}).join('')+
+    '<hr><div class="ln tot"><span>À ENCAISSER</span><span>'+fmt(o.total)+'</span></div>'+
+    '<p class="c">Paiement à la livraison</p><hr><p class="c">Merci et bon appétit !</p>';
+  setTimeout(function(){try{window.print()}catch(e){toast('Impression indisponible sur ce navigateur.')}},60);
+}
+$('#orders').addEventListener('click',function(e){
+  var b=e.target.closest('[data-p]');if(!b)return;
+  var o=orders.filter(function(x){return x.id===b.dataset.p})[0];if(o)printOrder(o);
+});
+document.querySelector('.stat[data-f]').addEventListener('click',function(){document.querySelector('#fchips [data-f="acc"]').click()});
+$('#fchips').addEventListener('click',function(e){
+  var b=e.target.closest('[data-f]');if(!b)return;filt=b.dataset.f;
+  document.querySelectorAll('#fchips .chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});renderOrders();
+});
+$('#simBtn').addEventListener('click',async function(){
+  var m=MENU, pick=[m[Math.floor(Math.random()*m.length)],m[Math.floor(Math.random()*m.length)]];
+  var items=[{id:pick[0].id,name:pick[0].name,emoji:pick[0].emoji,price:pick[0].price,qty:1+Math.floor(Math.random()*2)}];
+  if(pick[1].id!==pick[0].id)items.push({id:pick[1].id,name:pick[1].name,emoji:pick[1].emoji,price:pick[1].price,qty:1});
+  var o=newOrder({nom:'Diop',prenom:'Awa',tel:'77 123 45 67',loc:'Grand Mbour, près du marché central',note:'Commande de test',gps:null},items,true);
+  try{await store.create(o)}catch(e){toast('Impossible de créer la commande de test.')}
+});
+$('#resetBtn').addEventListener('click',function(){if(store.reset){store.reset();known={}}});
+
+/* accès restaurant */
+function openPanel(){
+  $('#gate').hidden=true;$('#panel').hidden=false;
+  if(!unsubOrders)unsubOrders=store.onOrders(onOrders);
+  updateSoundBtn();
+}
+$('#unlock').addEventListener('click',async function(){
+  await storeReady;
+  var er=$('#gateErr');er.textContent='';
+  if(store.needsLogin){
+    try{await store.login($('#mail').value.trim(),$('#pw').value);openPanel()}
+    catch(e){er.textContent='Email ou mot de passe incorrect.'}
+  }else{
+    if($('#pin').value===CFG.RESTAURANT_PIN){try{sessionStorage.setItem('lf_ok','1')}catch(e){}openPanel()}
+    else er.textContent='Code incorrect.';
+  }
+});
+['pin','pw'].forEach(function(id){$('#'+id).addEventListener('keydown',function(e){if(e.key==='Enter')$('#unlock').click()})});
+
+/* onglets */
+function show(which){
+  var r=which==='resto';
+  $('#view-client').hidden=r;$('#view-resto').hidden=!r;
+  $('#tab-client').setAttribute('aria-selected',!r);$('#tab-resto').setAttribute('aria-selected',r);
+  $('#cartbar').style.visibility=r?'hidden':'visible';
+  if(r){
+    storeReady.then(function(){
+      var ok=false;try{ok=sessionStorage.getItem('lf_ok')==='1'}catch(e){}
+      if(ok&&!store.needsLogin)openPanel();
+    });
+  }
+}
+$('#tab-client').addEventListener('click',function(){show('client')});
+$('#tab-resto').addEventListener('click',function(){show('resto')});
+
+/* démarrage */
+(function(){
+  try{var c=JSON.parse(lsGet('lf_client')||'null');if(c){$('#f-nom').value=c.nom||'';$('#f-prenom').value=c.prenom||'';$('#f-tel').value=c.tel||''}}catch(e){}
+  renderChips();renderMenu();renderCart();
+  if(location.hash==='#restaurant')show('resto');
+  if(location.hash==='#demo'){
+    document.body.classList.add('demo');$('#view-client').hidden=false;$('#view-resto').hidden=false;
+    storeReady.then(function(){if(!store.needsLogin){try{sessionStorage.setItem('lf_ok','1')}catch(e){}openPanel()}});
+  }
+})();
+</script>
