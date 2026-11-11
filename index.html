@@ -1,0 +1,1247 @@
+<title>LIBERTY FOOD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: bandeau sombre en haut, menu en cartes à gauche, panier + formulaire collant à droite (empilés sur mobile). */
+:root{
+  --bg:#F5F3F1; --card:#FFFFFF; --ink:#1E1A18; --muted:#6B625C; --line:#E3DDD8;
+  --flame:#D62E1B; --flame-ink:#FFFFFF; --sun:#FFB81C; --band:#1E1A18; --band-ink:#FFF4DE;
+  --tint:#FBE9E5; --good:#1E8A4A; --warn:#B36B00; --bad:#B3261E;
+  --f-display:'Bricolage Grotesque','Arial Black',system-ui,sans-serif;
+  --f-body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151211; --card:#211C1A; --ink:#F4EEEA; --muted:#A99F98; --line:#3A322E;
+  --flame:#FF5A45; --flame-ink:#1A0A07; --sun:#FFC94D; --band:#0D0A09; --band-ink:#FFF4DE;
+  --tint:#3A1D18; --good:#4CC57C; --warn:#F0A63A; --bad:#FF7A6E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151211; --card:#211C1A; --ink:#F4EEEA; --muted:#A99F98; --line:#3A322E;
+  --flame:#FF5A45; --flame-ink:#1A0A07; --sun:#FFC94D; --band:#0D0A09; --band-ink:#FFF4DE;
+  --tint:#3A1D18; --good:#4CC57C; --warn:#F0A63A; --bad:#FF7A6E; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--band);z-index:10}
+button,input,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto}
+
+/* en-tête */
+.top{background:var(--band);color:var(--band-ink);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:14px max(16px,env(safe-area-inset-left,0px));position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font:800 24px/1 var(--f-display);letter-spacing:.02em;color:var(--sun)}
+.brand span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.1);padding:3px;border-radius:999px}
+.tabs button{border:0;background:none;color:inherit;padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:700;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--sun);color:#1E1A18}
+.badge{display:none;background:var(--flame);color:var(--flame-ink);border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px}
+
+.hero{padding:28px 0 8px}
+.hero h1{font-size:clamp(28px,5vw,44px);line-height:1.05;font-weight:800}
+.hero p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.mode{display:inline-block;margin-top:12px;font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:3px 8px}
+
+/* menu */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start;padding-top:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pic{height:96px;border-radius:10px;background:var(--tint);display:grid;place-items:center;font-size:54px}
+.item h3{font-size:18px;font-weight:600}
+.item p{margin:0;color:var(--muted);font-size:13px;flex:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.price{font-weight:700;font-variant-numeric:tabular-nums}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--flame);color:var(--flame-ink)}
+.btn:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.good{background:var(--good);color:#fff}
+.btn.small{padding:7px 12px;font-size:13px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{border:0;background:var(--bg);width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--ink)}
+.step span{min-width:30px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* panier */
+.side{position:sticky;top:calc(76px + env(safe-area-inset-top,0px));background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.side h2{font-size:22px}
+.lines{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.lines li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.lines .nm{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.lines .sub{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;border-top:1px solid var(--line);padding-top:12px;font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.hint{font-size:12px;color:var(--muted)}
+.cartbar{position:fixed;left:0;right:0;bottom:0;display:none;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));background:var(--band);z-index:6}
+.cartbar button{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;border-radius:12px;background:var(--sun);color:#1E1A18;padding:13px 16px;font-weight:700;font-size:16px;cursor:pointer}
+
+/* confirmation */
+.ok{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.ok .num{font:800 34px/1 var(--f-display);color:var(--flame)}
+.track{display:flex;flex-direction:column;gap:8px;width:100%;margin:0;padding:0;list-style:none}
+.track li{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.track li i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.track li.done{color:var(--ink)}
+.track li.done i{background:var(--good);border-color:var(--good)}
+.track li.now{color:var(--ink);font-weight:700}
+.track li.now i{background:var(--sun);border-color:var(--sun)}
+
+/* restaurant */
+.panel{padding-top:20px;display:flex;flex-direction:column;gap:18px}
+.gate{max-width:380px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font:800 26px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.alert{display:none;background:var(--flame);color:var(--flame-ink);border-radius:12px;padding:14px 16px;font-weight:700;font-size:17px;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.012);filter:brightness(1.15)}}
+@media (prefers-reduced-motion:reduce){.alert{animation:none}}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.ord{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ord.fresh{border:2px solid var(--flame)}
+.ord header{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ord .no{font:800 20px/1 var(--f-display)}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--tint);color:var(--flame)}
+.pill.preparation{background:#FFF0CC;color:var(--warn)}
+.pill.prete{background:#DDF3E5;color:var(--good)}
+.pill.livree{background:var(--bg);color:var(--muted)}
+.pill.annulee{background:var(--bg);color:var(--bad)}
+.who{font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.meta a{color:var(--flame);font-weight:700}
+.ord ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:20;font-weight:500;max-width:90vw}
+
+@media (max-width:860px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .side{position:static}
+  .cartbar.on{display:block}
+}
+@media (max-width:420px){.two{grid-template-columns:1fr}.brand span{display:none}}
+/* ticket d'impression */
+#ticket{display:none}
+.stat[data-f]{cursor:pointer}
+.stat[data-f]:hover{border-color:var(--ink)}
+@media print{
+  @page{margin:5mm}
+  body>*:not(#ticket){display:none!important}
+  body::before{display:none!important}
+  body{background:#fff!important;padding:0!important}
+  #ticket{display:block;width:76mm;margin:0 auto;color:#000;background:#fff;font:13px/1.35 'Courier New',monospace}
+  #ticket h1{font:800 20px/1.2 sans-serif;text-align:center;margin:0}
+  #ticket .c{text-align:center}
+  #ticket hr{border:0;border-top:1px dashed #000;margin:6px 0}
+  #ticket p{margin:2px 0}
+  #ticket .big{font-size:16px;font-weight:700}
+  #ticket .ln{display:flex;justify-content:space-between;gap:8px}
+  #ticket .tot{font-size:17px;font-weight:800}
+}
+/* réservation */
+[hidden]{display:none!important}
+.field select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.rgrid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start;padding-top:16px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.rcard h2{font-size:20px}
+.rside{position:sticky;top:calc(76px + env(safe-area-inset-top,0px))}
+.sec{display:flex;flex-direction:column;gap:10px;min-width:0}
+.slots{display:flex;gap:8px;flex-wrap:wrap}
+.chip[disabled]{opacity:.4;cursor:not-allowed}
+.guests{display:flex;align-items:center;gap:12px}
+.sumline{display:flex;justify-content:space-between;gap:12px;font-size:14px;border-bottom:1px dashed var(--line);padding:7px 0}
+.sumline b{text-align:right;overflow-wrap:anywhere}
+.info{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.pane{display:flex;flex-direction:column;gap:18px}
+@media (max-width:860px){.rgrid{grid-template-columns:minmax(0,1fr)}.rside{position:static}}
+body.demo .rgrid{grid-template-columns:minmax(0,1fr)}
+/* consommation réservée */
+.rlist{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow:auto}
+.rrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.rpic{font-size:26px}
+.rnm{flex:1;display:flex;flex-direction:column;min-width:0}
+.rnm small{color:var(--muted);font-variant-numeric:tabular-nums}
+/* mode test côte à côte */
+body.demo #tab-resto{display:none}
+body.demo main.wrap{max-width:1500px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+body.demo .grid{grid-template-columns:minmax(0,1fr)}
+body.demo .side{position:static}
+body.demo #view-resto{border-left:2px dashed var(--line,#ccc);padding-left:24px}
+@media (max-width:900px){body.demo main.wrap{grid-template-columns:minmax(0,1fr)}body.demo #view-resto{border-left:0;padding-left:0}}
+/* voix off de présentation */
+#intro{position:fixed;inset:0;z-index:50;background:rgba(13,10,9,.82);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+#intro[hidden]{display:none!important}
+.ibox{background:var(--card);color:var(--ink);border-radius:20px;max-width:560px;width:100%;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.45);max-height:calc(100dvh - 32px);overflow:auto}
+.ibox h2{font-size:26px;line-height:1.1}
+.ibox h2 em{font-style:normal;color:var(--flame)}
+.ibox p{margin:0;color:var(--muted)}
+.ilist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ilist li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font-size:14px;color:var(--muted);transition:background .2s,color .2s}
+.ilist li b{flex:none;width:22px;height:22px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:12px;color:var(--ink)}
+.ilist li.now{background:var(--tint);color:var(--ink);border-color:var(--flame)}
+.ilist li.now b{background:var(--flame);color:var(--flame-ink)}
+.ilist li.done{color:var(--ink)}
+.ilist li.done b{background:var(--good);color:#fff}
+.ibtns{display:flex;gap:10px;flex-wrap:wrap}
+.ibtns .btn{flex:1;min-width:150px}
+.wave{display:none;gap:3px;align-items:flex-end;height:22px}
+.wave i{width:4px;background:var(--flame);border-radius:2px;animation:wv 0.9s ease-in-out infinite}
+.wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}
+@keyframes wv{0%,100%{height:5px}50%{height:22px}}
+#intro.playing .wave{display:flex}
+@media (prefers-reduced-motion:reduce){.wave i{animation:none;height:14px}}
+#replay{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:7;border:0;border-radius:999px;background:var(--band);color:var(--sun);padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#replay[hidden]{display:none!important}
+@media (max-width:860px){#replay{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
+@media print{#intro,#replay{display:none!important}}
+</style>
+
+<div class="top"><div class="wrap">
+  <div class="brand"><b>LIBERTY FOOD</b><span>Grand Mbour</span></div>
+  <div class="tabs" role="tablist">
+    <button id="tab-client" role="tab" aria-selected="true">Commander</button>
+    <button id="tab-resa" role="tab" aria-selected="false">Réserver</button>
+    <button id="tab-resto" role="tab" aria-selected="false">Restaurant<span class="badge" id="tabBadge">0</span></button>
+  </div>
+</div></div>
+
+<main class="wrap">
+
+<!-- ESPACE CLIENT -->
+<section id="view-client">
+  <div class="hero">
+    <h1>Commandez chez Liberty Food, on prépare et on vous livre.</h1>
+    <p>Choisissez vos plats, indiquez où vous êtes à Mbour, et le restaurant est prévenu tout de suite. Paiement à la livraison.</p>
+    <span class="mode" id="modeNote">Connexion…</span>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="chips" id="chips" role="group" aria-label="Catégories"></div>
+      <div class="menu" id="menu"></div>
+    </div>
+    <aside class="side" id="side">
+      <div id="cartBox">
+        <h2>Votre commande</h2>
+        <ul class="lines" id="lines"></ul>
+        <div class="total"><span>Total</span><span id="total">0 FCFA</span></div>
+      </div>
+      <form id="form" novalidate autocomplete="on">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="two">
+            <div class="field"><label for="f-nom">Nom</label><input id="f-nom" name="family-name" autocomplete="family-name"></div>
+            <div class="field"><label for="f-prenom">Prénom</label><input id="f-prenom" name="given-name" autocomplete="given-name"></div>
+          </div>
+          <div class="field"><label for="f-tel">Téléphone</label><input id="f-tel" name="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="77 000 00 00"></div>
+          <div class="field"><label for="f-loc">Localisation exacte</label>
+            <textarea id="f-loc" rows="3" placeholder="Quartier, rue, numéro de maison, point de repère (ex. en face de la pharmacie)"></textarea>
+            <button type="button" class="btn ghost small" id="gps" style="align-self:flex-start;margin-top:4px">📍 Utiliser ma position GPS</button>
+            <span class="hint" id="gpsNote"></span>
+          </div>
+          <div class="field"><label for="f-note">Précisions (facultatif)</label><input id="f-note" placeholder="Sans piment, sonner deux fois…"></div>
+          <div class="err" id="err" role="alert"></div>
+          <button class="btn" id="send" type="submit">Envoyer ma commande</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+</section>
+
+<!-- ESPACE RÉSERVATION -->
+<section id="view-resa" hidden>
+  <div class="hero">
+    <h1>Réservez votre table chez Liberty Food.</h1>
+    <p>Choisissez la date, l'heure et le nombre de personnes. Le restaurant reçoit votre demande tout de suite et vous répond sur WhatsApp.</p>
+  </div>
+  <div class="rgrid">
+    <form class="rcard" id="rform" novalidate autocomplete="on">
+      <div class="sec">
+        <h2>1. Date, heure et personnes</h2>
+        <div class="two">
+          <div class="field"><label for="r-date">Date</label><input id="r-date" type="date"></div>
+          <div class="field"><label>Nombre de personnes</label>
+            <div class="guests"><span class="step"><button type="button" id="gMinus" aria-label="Une personne de moins">−</button><span id="gVal">2</span><button type="button" id="gPlus" aria-label="Une personne de plus">+</button></span></div>
+            <span class="hint" id="gHint"></span>
+          </div>
+        </div>
+        <div class="field"><label>Heure d'arrivée</label><div id="r-slots" class="sec"></div></div>
+      </div>
+      <div class="sec">
+        <h2>2. Préférences</h2>
+        <div class="field"><label>Emplacement</label>
+          <div class="slots" id="r-area">
+            <button type="button" class="chip" data-a="Intérieur" aria-pressed="false">Intérieur</button>
+            <button type="button" class="chip" data-a="Terrasse" aria-pressed="false">Terrasse</button>
+            <button type="button" class="chip" data-a="Peu importe" aria-pressed="true">Peu importe</button>
+          </div>
+        </div>
+        <div class="field"><label for="r-occ">Occasion</label>
+          <select id="r-occ"><option>Aucune</option><option>Anniversaire</option><option>Repas en famille</option><option>Repas d'affaires</option><option>Rendez-vous romantique</option><option>Autre</option></select>
+        </div>
+      </div>
+      <div class="sec">
+        <h2>3. Votre consommation (facultatif)</h2>
+        <span class="hint">Choisissez vos plats à l'avance : ils seront préparés pour votre arrivée. Le montant se règle sur place.</span>
+        <div class="chips" id="rchips" style="margin-bottom:0" role="group" aria-label="Catégories"></div>
+        <div class="rlist" id="rmenu"></div>
+      </div>
+      <div class="sec">
+        <h2>4. Vos coordonnées</h2>
+        <div class="two">
+          <div class="field"><label for="r-nom">Nom</label><input id="r-nom" autocomplete="family-name"></div>
+          <div class="field"><label for="r-prenom">Prénom</label><input id="r-prenom" autocomplete="given-name"></div>
+        </div>
+        <div class="field"><label for="r-tel">Téléphone (WhatsApp)</label><input id="r-tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="77 000 00 00"></div>
+        <div class="field"><label for="r-mail">Email (facultatif)</label><input id="r-mail" type="email" autocomplete="email"></div>
+        <div class="field"><label for="r-note">Demandes particulières (facultatif)</label><textarea id="r-note" rows="3" placeholder="Chaise bébé, allergie, table calme, gâteau d'anniversaire…"></textarea></div>
+      </div>
+      <div class="err" id="r-err" role="alert"></div>
+      <button class="btn" id="r-send" type="submit">Envoyer ma demande de réservation</button>
+      <span class="hint">Sans paiement. Votre table est confirmée dès que le restaurant vous répond sur WhatsApp.</span>
+    </form>
+    <aside class="rcard rside" id="rside">
+      <h2>Votre réservation</h2>
+      <div>
+        <div class="sumline"><span>Date</span><b id="sumDate">—</b></div>
+        <div class="sumline"><span>Heure</span><b id="sumTime">—</b></div>
+        <div class="sumline"><span>Personnes</span><b id="sumGuests">—</b></div>
+        <div class="sumline"><span>Emplacement</span><b id="sumArea">—</b></div>
+      </div>
+      <div id="sumConso"></div>
+      <div class="info" id="rInfo"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ESPACE RESTAURANT -->
+<section id="view-resto" hidden>
+  <div class="gate" id="gate">
+    <h2>Espace restaurant</h2>
+    <div class="field" id="pinBox"><label for="pin">Code d'accès</label><input id="pin" type="password" inputmode="numeric" autocomplete="off"><span class="hint" id="pinHint"></span></div>
+    <div id="mailBox" hidden style="display:flex;flex-direction:column;gap:12px">
+      <div class="field"><label for="mail">Email</label><input id="mail" type="email" autocomplete="username"></div>
+      <div class="field"><label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password"></div>
+    </div>
+    <div class="err" id="gateErr"></div>
+    <button class="btn" id="unlock">Ouvrir</button>
+  </div>
+
+  <div class="panel" id="panel" hidden>
+    <div class="alert" id="alert"></div>
+    <div class="bar">
+      <button class="btn" id="soundBtn">🔔 Activer les alertes sonores</button>
+      <button class="btn ghost" id="simBtn">Simuler une commande (test)</button>
+      <button class="btn ghost" id="simRBtn">Simuler une réservation (test)</button>
+      <button class="btn ghost" id="resetBtn" hidden>Effacer les commandes de test</button>
+    </div>
+    <div class="chips" id="ptabs" role="group" aria-label="Section">
+      <button class="chip" data-t="orders" aria-pressed="true">Commandes <span id="pcO"></span></button>
+      <button class="chip" data-t="resa" aria-pressed="false">Réservations <span id="pcR"></span></button>
+    </div>
+    <div class="pane" id="paneOrders">
+    <div class="stats">
+      <div class="stat"><b id="sNew">0</b><span>À accepter</span></div>
+      <div class="stat" data-f="acc" title="Voir les commandes acceptées"><b id="sAcc">0</b><span>Commandes acceptées</span></div>
+      <div class="stat"><b id="sDay">0</b><span>Commandes aujourd'hui</span></div>
+      <div class="stat"><b id="sCa">0</b><span>Chiffre du jour (FCFA)</span></div>
+    </div>
+    <div class="chips" id="fchips" role="group" aria-label="Filtre">
+      <button class="chip" data-f="cours" aria-pressed="true">En cours</button>
+      <button class="chip" data-f="new" aria-pressed="false">À accepter <span id="cNew"></span></button>
+      <button class="chip" data-f="acc" aria-pressed="false">Acceptées <span id="cAcc"></span></button>
+      <button class="chip" data-f="fin" aria-pressed="false">Terminées</button>
+    </div>
+    <div class="orders" id="orders"></div>
+    </div>
+    <div class="pane" id="paneResa" hidden>
+      <div class="stats">
+        <div class="stat"><b id="rsNew">0</b><span>À confirmer</span></div>
+        <div class="stat"><b id="rsConf">0</b><span>Confirmées à venir</span></div>
+        <div class="stat"><b id="rsDay">0</b><span>Réservations aujourd'hui</span></div>
+        <div class="stat"><b id="rsCov">0</b><span>Couverts aujourd'hui</span></div>
+      </div>
+      <div class="chips" id="rfchips" role="group" aria-label="Filtre réservations">
+        <button class="chip" data-rf="avenir" aria-pressed="true">À venir</button>
+        <button class="chip" data-rf="new" aria-pressed="false">À confirmer <span id="rcNew"></span></button>
+        <button class="chip" data-rf="conf" aria-pressed="false">Confirmées <span id="rcConf"></span></button>
+        <button class="chip" data-rf="fin" aria-pressed="false">Terminées</button>
+      </div>
+      <div class="orders" id="resaList"></div>
+    </div>
+    <details class="rcard" id="guideWa">
+      <summary style="cursor:pointer;font-weight:700">💬 Activer l'envoi WhatsApp 100 % automatique (guide)</summary>
+      <div class="sec" style="margin-top:12px;font-size:14px">
+        <p style="margin:0">Tant que ce n'est pas activé, l'application prépare le message de confirmation et vous l'envoyez en un clic avec le bouton WhatsApp de chaque carte. Pour que le message parte tout seul dès que le client valide, il faut un petit service qui utilise l'API officielle WhatsApp Business (Meta), car la clé secrète ne doit jamais être dans cette page.</p>
+        <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+          <li>Créez un compte Meta for Developers, ajoutez WhatsApp et notez votre identifiant de numéro (<code>WA_PHONE_ID</code>) et un jeton permanent (<code>WA_TOKEN</code>).</li>
+          <li>Dans le gestionnaire WhatsApp, créez un modèle de message nommé <code>liberty_notification</code>, en français, avec le texte <code>LIBERTY FOOD : {{1}}</code>. Meta doit l'approuver ; il est obligatoire pour écrire à un client qui ne vous a pas écrit depuis 24 h.</li>
+          <li>Dans Supabase, créez une fonction <code>whatsapp-notify</code> avec le code ci-dessous et ajoutez les secrets <code>WA_PHONE_ID</code> et <code>WA_TOKEN</code>.</li>
+          <li>En haut du script de ce fichier, remplissez <code>NOTIFY_URL</code> (adresse de la fonction) et <code>RESTAURANT_WHATSAPP</code> (votre numéro, ex. 221770000000).</li>
+        </ol>
+        <div class="row"><b>Code de la fonction</b><button type="button" class="btn ghost small" id="copyEdge">Copier le code</button></div>
+        <pre id="edgePre" style="margin:0;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:auto;font-size:12px;max-height:320px"></pre>
+        <p class="hint" style="margin:0">Meta facture chaque conversation lancée par l'entreprise. Avant la mise en ligne, limitez l'accès à la fonction (par exemple en n'envoyant que pour une commande ou réservation existante).</p>
+      </div>
+    </details>
+    <script type="text/plain" id="edgeCode">
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'content-type, authorization, apikey',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const { to, message } = await req.json();
+  if (!/^\d{8,15}$/.test(to) || !message) {
+    return new Response('requête invalide', { status: 400, headers: cors });
+  }
+  const r = await fetch(
+    `https://graph.facebook.com/v21.0/${Deno.env.get('WA_PHONE_ID')}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${Deno.env.get('WA_TOKEN')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to,
+        type: 'template',
+        template: {
+          name: 'liberty_notification',
+          language: { code: 'fr' },
+          components: [{
+            type: 'body',
+            parameters: [{ type: 'text', text: String(message).replace(/\s*\n\s*/g, ' · ') }],
+          }],
+        },
+      }),
+    },
+  );
+  return new Response(await r.text(), { status: r.ok ? 200 : 502, headers: cors });
+});
+    </script>
+  </div>
+</section>
+</main>
+
+<div class="cartbar" id="cartbar"><button id="cartbtn"><span id="cbN">Voir mon panier</span><span id="cbT"></span></button></div>
+
+<!-- VOIX OFF DE PRÉSENTATION -->
+<div id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
+  <div class="ibox">
+    <div class="row"><span class="pill">Présentation de l'application</span><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+    <h2 id="introTitle">Bienvenue chez <em>LIBERTY FOOD</em></h2>
+    <p>Écoutez en moins de deux minutes comment cette application vous fait gagner du temps, que vous soyez client ou restaurateur.</p>
+    <ol class="ilist" id="ilist"></ol>
+    <div class="ibtns">
+      <button class="btn" id="iPlay" type="button">🔊 Écouter la présentation</button>
+      <button class="btn ghost" id="iClose" type="button">Passer et commencer</button>
+    </div>
+    <span class="hint" id="iHint"></span>
+  </div>
+</div>
+<button id="replay" type="button" hidden aria-label="Réécouter la présentation vocale">🔊 Présentation</button>
+
+<div id="ticket" aria-hidden="true"></div>
+<script>
+/* ===== Voix off de présentation (synthèse vocale du navigateur, en français) ===== */
+(function(){
+  var SCRIPT=[
+    ['Bienvenue','Bienvenue chez Liberty Food, à Grand Mbour. Voici votre application pour commander, réserver une table, et permettre au restaurant de tout gérer en temps réel.'],
+    ['Commander','Pour les clients, tout commence par l\'onglet Commander. Vous parcourez le menu : pizzas, tacos, sandwichs, burgers, accompagnements et boissons. Vous ajoutez vos plats au panier, et le total se calcule tout seul.'],
+    ['Livraison','Ensuite, vous indiquez votre nom, votre prénom, votre numéro de téléphone et votre localisation exacte. Vous pouvez même utiliser votre position G P S. Le paiement se fait simplement à la livraison.'],
+    ['Suivi','Dès que vous envoyez votre commande, le restaurant est prévenu immédiatement. Vous recevez un numéro de commande, et vous suivez chaque étape : reçue, en préparation, prête, puis livrée. Un message de confirmation vous est aussi envoyé sur WhatsApp.'],
+    ['Réserver','L\'onglet Réserver vous permet de réserver une table, sans aucun paiement. Vous choisissez la date, l\'heure, le nombre de personnes, l\'emplacement, intérieur ou terrasse, et l\'occasion. Vous pouvez même choisir vos plats à l\'avance, pour qu\'ils soient prêts à votre arrivée.'],
+    ['Restaurant','Côté restaurant, l\'espace est protégé par un code d\'accès. Chaque nouvelle commande ou réservation déclenche une alerte sonore et vocale : impossible de la manquer. D\'un seul clic, le restaurant accepte, prépare, livre, confirme ou refuse.'],
+    ['Outils','Il peut aussi contacter le client sur WhatsApp avec un message déjà prêt, ouvrir sa position sur la carte, et imprimer un ticket de commande ou une facture de réservation avec la somme à payer.'],
+    ['Pilotage','Le tableau de bord affiche en direct les commandes à accepter, les commandes du jour, le chiffre d\'affaires, et le nombre de couverts réservés.'],
+    ['Conclusion','Liberty Food : plus rapide, plus simple, plus professionnel. Commandez, réservez, et régalez-vous !']
+  ];
+  var intro=document.getElementById('intro'), list=document.getElementById('ilist'), btn=document.getElementById('iPlay'),
+      hint=document.getElementById('iHint'), replay=document.getElementById('replay');
+  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){return}
+  var synth=window.speechSynthesis, idx=-1, running=false, started=false, voice=null, runId=0, autoTry=false, keep=[];
+
+  /* texte découpé en petites phrases : les longs textes sont coupés net par Chrome/Android */
+  var CHUNKS=[];
+  SCRIPT.forEach(function(s,i){(s[1].match(/[^.!?:]+[.!?:]*/g)||[s[1]]).forEach(function(t){t=t.trim();if(t)CHUNKS.push({s:i,t:t})})});
+
+  list.innerHTML=SCRIPT.map(function(s,i){return '<li data-i="'+i+'"><b>'+(i+1)+'</b><span>'+s[0]+'</span></li>'}).join('');
+
+  function pickVoice(){
+    var v=synth.getVoices()||[];
+    voice=v.filter(function(x){return /^fr[-_]FR/i.test(x.lang)})[0]||v.filter(function(x){return /^fr/i.test(x.lang)})[0]||null;
+  }
+  pickVoice();
+  if(synth.addEventListener)synth.addEventListener('voiceschanged',pickVoice);else synth.onvoiceschanged=pickVoice;
+
+  function mark(){
+    Array.prototype.forEach.call(list.children,function(li,i){
+      li.className=running&&i===idx?'now':(i<idx||(!running&&idx>=SCRIPT.length)?'done':'');
+    });
+    var now=list.querySelector('.now'); if(now&&now.scrollIntoView)now.scrollIntoView({block:'nearest'});
+  }
+  function setUi(){
+    intro.classList.toggle('playing',running&&started);
+    btn.textContent=running?'⏹ Arrêter la voix':(idx>=SCRIPT.length?'🔁 Réécouter':'🔊 Écouter la présentation');
+  }
+  function fail(msg){running=false;started=false;runId++;try{synth.cancel()}catch(e){}setUi();mark();hint.textContent=msg}
+  function say(k,id){
+    if(id!==runId)return;
+    if(k>=CHUNKS.length){running=false;idx=SCRIPT.length;mark();setUi();hint.textContent='Présentation terminée. Bonne commande !';return}
+    idx=CHUNKS[k].s;mark();
+    var u=new SpeechSynthesisUtterance(CHUNKS[k].t);
+    u.lang='fr-FR';u.rate=0.95;u.pitch=1;u.volume=1;if(voice)u.voice=voice;
+    keep.push(u);if(keep.length>4)keep.shift(); /* garde une référence : sinon le navigateur peut supprimer la voix en cours */
+    u.onstart=function(){if(id!==runId)return;started=true;hint.textContent='';setUi()};
+    u.onend=function(){say(k+1,id)};
+    u.onerror=function(e){
+      if(id!==runId)return;
+      var er=e&&e.error;
+      if(er==='canceled'||er==='interrupted')return;
+      if(er==='not-allowed'){fail('Le navigateur bloque le son automatique. Touchez « Écouter la présentation ».');return}
+      if(!started){fail('La voix n\'a pas pu démarrer sur cet appareil. Touchez « Écouter la présentation » pour réessayer.');return}
+      say(k+1,id);
+    };
+    try{synth.resume()}catch(e){}
+    synth.speak(u);
+  }
+  function play(auto){
+    runId++;var id=runId;
+    try{synth.cancel()}catch(e){}
+    running=true;started=false;autoTry=!!auto;setUi();hint.textContent='';pickVoice();
+    setTimeout(function(){say(0,id)},250);
+    setTimeout(function(){
+      if(id!==runId||!running||started)return;
+      if(auto){fail('Touchez « Écouter la présentation » pour lancer la voix (le navigateur bloque le son automatique).');return}
+      fail(voice?'Aucun son. Vérifiez le volume de l\'appareil et que le mode silencieux est désactivé, puis touchez « Écouter ».'
+                 :'Aucune voix française trouvée. Dans les réglages de l\'appareil (synthèse vocale), installez la voix française, ou ouvrez la page dans Chrome, puis réessayez.');
+    },3000);
+  }
+  function stop(){runId++;try{synth.cancel()}catch(e){}running=false;started=false;setUi();mark()}
+  function open(auto){
+    intro.hidden=false;replay.hidden=true;idx=-1;mark();setUi();
+    if(auto)play(true); /* lecture automatique tentée ; sinon le premier toucher lancera la voix */
+  }
+  function close(){stop();intro.hidden=true;replay.hidden=false;try{sessionStorage.setItem('lf_intro','1')}catch(e){}}
+
+  btn.addEventListener('click',function(){(running&&started)?stop():play(false)});
+  document.getElementById('iClose').addEventListener('click',close);
+  replay.addEventListener('click',function(){open(false);play(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!intro.hidden)close()});
+  /* si le navigateur a bloqué la lecture automatique, le premier toucher sur la page lance la voix */
+  function firstGesture(e){
+    if(intro.hidden||started)return;
+    if(e.target&&e.target.closest&&e.target.closest('button'))return;
+    if(!running||!started){play(false)}
+    document.removeEventListener('pointerdown',firstGesture,true);
+  }
+  document.addEventListener('pointerdown',firstGesture,true);
+  window.addEventListener('beforeunload',function(){try{synth.cancel()}catch(e){}});
+
+  /* à l'ouverture : présentation affichée et lancée automatiquement (sauf espace restaurant ou déjà vue dans cette session) */
+  var seen=false;try{seen=sessionStorage.getItem('lf_intro')==='1'}catch(e){}
+  if(location.hash==='#restaurant'||location.hash==='#demo'||seen){replay.hidden=false}
+  else open(true);
+})();
+</script>
+
+<script>
+/* ===== Réglages ===== */
+var CFG = {
+  RESTAURANT_PIN: '1234',   // code d'accès de l'espace restaurant (à changer)
+  SUPABASE_URL: '',         // laisser vide pour le mode test ; voir supabase-setup.sql pour la mise en ligne
+  SUPABASE_KEY: '',
+  RESTAURANT_WHATSAPP: '',  // numéro WhatsApp du restaurant, format international sans + (ex. 221770000000)
+  NOTIFY_URL: '',           // adresse du service d'envoi WhatsApp automatique (voir WHATSAPP-AUTO.md) ; vide = mode manuel en un clic
+  RESERVATION: {open:'11:00', close:'22:00', pas:30, preavisMin:60, joursMax:60, maxPers:12, fermes:[]} // fermes : jours de fermeture (0 = dimanche … 6 = samedi)
+};
+
+var MENU = [
+  {id:'pz1', cat:'Pizzas', emoji:'🍕', name:'Pizza Margherita', desc:'Sauce tomate, mozzarella, basilic frais.', price:4500},
+  {id:'pz2', cat:'Pizzas', emoji:'🍕', name:'Pizza 4 Fromages', desc:'Mozzarella, emmental, chèvre et bleu.', price:6500},
+  {id:'tc1', cat:'Tacos', emoji:'🌮', name:'Tacos Poulet', desc:'Poulet mariné, frites, sauce fromagère.', price:2500},
+  {id:'tc2', cat:'Tacos', emoji:'🌮', name:'Tacos Viande Hachée', desc:'Viande hachée, cheddar, sauce algérienne.', price:3000},
+  {id:'sw1', cat:'Sandwichs', emoji:'🥪', name:'Sandwich Poulet Crudités', desc:'Poulet grillé, salade, tomate, mayonnaise.', price:2000},
+  {id:'sw2', cat:'Sandwichs', emoji:'🥪', name:'Sandwich Thon Mayonnaise', desc:'Thon, oignon, olives, œuf dur.', price:1500},
+  {id:'hb1', cat:'Burgers', emoji:'🍔', name:'Hamburger Classique', desc:'Steak, salade, tomate, cornichon, ketchup.', price:3000},
+  {id:'hb2', cat:'Burgers', emoji:'🍔', name:'Cheeseburger Double', desc:'Deux steaks, double cheddar, oignons grillés.', price:4500},
+  {id:'fr1', cat:'Accompagnements', emoji:'🍟', name:'Frites Maison', desc:'Pommes de terre fraîches, bien croustillantes.', price:1000},
+  {id:'bs1', cat:'Boissons', emoji:'🍹', name:'Jus de Bissap Glacé', desc:'Fleur d\'hibiscus, menthe, bien frais.', price:500}
+];
+var CATS = ['Tous','Pizzas','Tacos','Sandwichs','Burgers','Accompagnements','Boissons'];
+var STATUS_LABEL = {nouvelle:'Nouvelle', preparation:'En préparation', prete:'Prête', livree:'Livrée', annulee:'Annulée'};
+
+/* ===== Outils ===== */
+var $ = function(s){return document.querySelector(s)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(n){return Number(n).toLocaleString('fr-FR').replace(/[  ]/g,' ')+' FCFA'}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function toast(msg){
+  var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  setTimeout(function(){t.remove()},3500);
+}
+
+/* ===== Dates et messages WhatsApp ===== */
+function pad(n){return n<10?'0'+n:''+n}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function longDate(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function uid(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():('o'+Date.now()+Math.random().toString(16).slice(2))}
+function intl(tel){var d=String(tel||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);if(d.length===9)d='221'+d;return d}
+function msgFor(o,st){
+  var p=o.customer.prenom, n=o.number, sign='\nLIBERTY FOOD · Grand Mbour';
+  if(o.kind==='reservation'){
+    var r=o.resa, when=longDate(r.date)+' à '+r.time+' pour '+r.guests+' personne'+(r.guests>1?'s':'');
+    var cons=(o.items&&o.items.length)?' Consommation prévue : '+o.items.map(function(i){return i.qty+' x '+i.name}).join(', ')+'. Total à régler sur place : '+fmt(o.total)+'.':'';
+    if(st==='preparation')return 'Bonjour '+p+', votre réservation '+n+' est CONFIRMÉE : '+when+'.'+cons+' Nous vous attendons avec plaisir !'+sign;
+    if(st==='annulee')return 'Bonjour '+p+', nous sommes désolés : nous ne pouvons pas honorer votre réservation '+n+' ('+when+'). Répondez à ce message pour choisir un autre horaire.'+sign;
+    if(st==='livree')return 'Bonjour '+p+', merci pour votre visite chez LIBERTY FOOD. À très bientôt !'+sign;
+    return 'Bonjour '+p+', nous avons bien reçu votre demande de réservation '+n+' : '+when+'.'+cons+' Nous vous confirmons la table très vite sur ce numéro.'+sign;
+  }
+  var t=fmt(o.total), lst=o.items.map(function(i){return i.qty+' x '+i.name}).join(', ');
+  if(st==='preparation')return 'Bonjour '+p+', votre commande '+n+' est acceptée et en cours de préparation. Total à payer à la livraison : '+t+'.'+sign;
+  if(st==='prete')return 'Bonjour '+p+', votre commande '+n+' est prête et en route vers vous. Gardez votre téléphone à portée de main.'+sign;
+  if(st==='livree')return 'Bonjour '+p+', votre commande '+n+' a été livrée. Merci et bon appétit !'+sign;
+  if(st==='annulee')return 'Bonjour '+p+', nous sommes désolés : votre commande '+n+' n\'a pas pu être acceptée. Appelez-nous ou répondez à ce message.'+sign;
+  return 'Bonjour '+p+', LIBERTY FOOD a bien reçu votre commande '+n+' ('+lst+'). Total à payer à la livraison : '+t+'. Nous la préparons et vous tenons informé ici.'+sign;
+}
+/* envoi automatique via le service configuré dans NOTIFY_URL (renvoie true si le message est parti) */
+function notify(o,st){
+  if(!CFG.NOTIFY_URL)return Promise.resolve(false);
+  return fetch(CFG.NOTIFY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:intl(o.customer.tel),message:msgFor(o,st),type:o.kind==='reservation'?'reservation':'commande',number:o.number,status:st})})
+    .then(function(r){return r.ok}).catch(function(){return false});
+}
+function notifyInit(o){
+  return CFG.NOTIFY_URL ? 'Envoi du message de confirmation sur WhatsApp au '+o.customer.tel+'…' : 'Le restaurant vous écrira sur WhatsApp au '+o.customer.tel+'.';
+}
+function notifyClient(o,id){
+  notify(o,'nouvelle').then(function(ok){
+    var el=document.getElementById(id);if(!el)return;
+    if(ok)el.textContent='✅ Message de confirmation envoyé sur WhatsApp au '+o.customer.tel+'.';
+    else if(CFG.NOTIFY_URL)el.textContent='Le message automatique n\'a pas pu partir. Le restaurant vous contactera sur WhatsApp au '+o.customer.tel+'.';
+  });
+}
+function rwaBtn(o){
+  if(!CFG.RESTAURANT_WHATSAPP)return '';
+  var t='Bonjour LIBERTY FOOD, je suis '+o.customer.prenom+' '+o.customer.nom+'. Je viens d\'envoyer '+(o.kind==='reservation'?'la demande de réservation ':'la commande ')+o.number+'.';
+  return '<a class="btn ghost small" target="_blank" rel="noopener" href="https://wa.me/'+CFG.RESTAURANT_WHATSAPP+'?text='+encodeURIComponent(t)+'">💬 Écrire au restaurant sur WhatsApp</a>';
+}
+
+/* ===== Stockage des commandes (3 modes) ===== */
+var memOrders=[];
+function localStore(){
+  var K='lf_orders_v1', subs=[];
+  function read(){try{var v=localStorage.getItem(K);return v?JSON.parse(v):memOrders}catch(e){return memOrders}}
+  function write(a){memOrders=a;try{localStorage.setItem(K,JSON.stringify(a))}catch(e){}subs.forEach(function(f){f(a)})}
+  window.addEventListener('storage',function(e){if(e.key===K)subs.forEach(function(f){f(read())})});
+  return {
+    name:'local',
+    create:function(o){var a=read().slice();a.push(o);write(a);return Promise.resolve()},
+    update:function(id,st){write(read().map(function(o){return o.id===id?Object.assign({},o,{status:st}):o}));return Promise.resolve()},
+    reset:function(){write([])},
+    onOrders:function(cb){subs.push(cb);cb(read());var t=setInterval(function(){cb(read())},3000);
+      return function(){subs=subs.filter(function(f){return f!==cb});clearInterval(t)}},
+    watch:function(id,cb){var t=setInterval(function(){var o=read().filter(function(x){return x.id===id})[0];if(o)cb(o.status)},2500);return function(){clearInterval(t)}}
+  };
+}
+function dbStore(db){
+  var col=db.collection('orders');
+  return {
+    name:'db',
+    create:function(o){return col.doc(o.id).set(o)},
+    update:function(id,st){return col.doc(id).update({status:st})},
+    onOrders:function(cb){return col.orderBy('createdAt','desc').limit(300).onSnapshot(function(s){cb(s.docs.map(function(d){return d.data()}))},function(){})},
+    watch:function(id,cb){return col.doc(id).onSnapshot(function(s){var d=s.data();if(d)cb(d.status)},function(){})}
+  };
+}
+function sbStore(){
+  var U=CFG.SUPABASE_URL.replace(/\/$/,''),K=CFG.SUPABASE_KEY,token=null;
+  function H(auth){return {apikey:K,Authorization:'Bearer '+((auth&&token)?token:K),'Content-Type':'application/json'}}
+  function toOrder(r){return Object.assign({},r.data,{id:r.id,number:r.number,status:r.status,createdAt:new Date(r.created_at).getTime()})}
+  return {
+    name:'supabase', needsLogin:true,
+    login:function(email,pw){
+      return fetch(U+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw})})
+        .then(function(r){if(!r.ok)throw new Error('login');return r.json()}).then(function(j){token=j.access_token});
+    },
+    create:function(o){
+      var body={id:o.id,number:o.number,status:o.status,data:{customer:o.customer,items:o.items,total:o.total,test:!!o.test,kind:o.kind||'commande',resa:o.resa||null}};
+      return fetch(U+'/rest/v1/orders',{method:'POST',headers:Object.assign(H(false),{Prefer:'return=minimal'}),body:JSON.stringify(body)})
+        .then(function(r){if(!r.ok)throw new Error('create')});
+    },
+    update:function(id,st){
+      return fetch(U+'/rest/v1/orders?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:H(true),body:JSON.stringify({status:st})})
+        .then(function(r){if(!r.ok)throw new Error('update')});
+    },
+    onOrders:function(cb){
+      function tick(){fetch(U+'/rest/v1/orders?select=*&order=created_at.desc&limit=200',{headers:H(true)})
+        .then(function(r){return r.ok?r.json():null}).then(function(a){if(a)cb(a.map(toOrder))}).catch(function(){})}
+      tick();var t=setInterval(tick,4000);return function(){clearInterval(t)};
+    },
+    watch:function(id,cb){
+      function tick(){fetch(U+'/rest/v1/rpc/order_status',{method:'POST',headers:H(false),body:JSON.stringify({oid:id})})
+        .then(function(r){return r.ok?r.json():null}).then(function(s){if(s)cb(s)}).catch(function(){})}
+      tick();var t=setInterval(tick,5000);return function(){clearInterval(t)};
+    }
+  };
+}
+
+var store = localStore();
+var storeReady = (async function(){
+  if(CFG.SUPABASE_URL){store=sbStore();return}
+  try{
+    if(window.claude&&window.claude.use){
+      var db=await window.claude.use('db'), user=await window.claude.use('user');
+      if(db&&user){
+        var can=await user.can('data.write'), own=await user.isOwner();
+        if(can===true||own===true){store=dbStore(db)}
+      }
+    }
+  }catch(e){}
+})();
+storeReady.then(function(){
+  var n=$('#modeNote');
+  n.textContent = store.name==='supabase' ? 'Commandes en ligne' :
+    store.name==='db' ? 'Mode test : commandes partagées entre vos appareils connectés' :
+    'Mode test : les commandes restent sur cet appareil';
+  $('#resetBtn').hidden = store.name!=='local';
+  $('#mailBox').hidden = !store.needsLogin;
+  $('#pinBox').hidden = !!store.needsLogin;
+  $('#mailBox').style.display = store.needsLogin?'flex':'none';
+  if(!store.needsLogin){
+    $('#pinHint').textContent='Mode test : le code est '+CFG.RESTAURANT_PIN+'.';
+    if(location.hash!=='#demo')n.insertAdjacentHTML('beforeend',' · <a href="#demo" onclick="setTimeout(function(){location.reload()},0)">Voir client + restaurant côte à côte</a>');
+  }
+});
+
+/* ===== Client : menu et panier ===== */
+var cart = {}, cat = 'Tous', lastOrderUnsub = null;
+
+function renderChips(){
+  $('#chips').innerHTML = CATS.map(function(c){return '<button class="chip" data-c="'+esc(c)+'" aria-pressed="'+(c===cat)+'">'+esc(c)+'</button>'}).join('');
+}
+function renderMenu(){
+  var list = MENU.filter(function(m){return cat==='Tous'||m.cat===cat});
+  $('#menu').innerHTML = list.map(function(m){
+    var q = cart[m.id]||0;
+    var ctl = q ? '<span class="step"><button data-d="-1" data-id="'+m.id+'" aria-label="Retirer un '+esc(m.name)+'">−</button><span>'+q+'</span><button data-d="1" data-id="'+m.id+'" aria-label="Ajouter un '+esc(m.name)+'">+</button></span>'
+                : '<button class="btn small" data-d="1" data-id="'+m.id+'">Ajouter</button>';
+    return '<article class="item"><div class="pic" aria-hidden="true">'+m.emoji+'</div><h3>'+esc(m.name)+'</h3><p>'+esc(m.desc)+'</p><div class="row"><span class="price">'+fmt(m.price)+'</span>'+ctl+'</div></article>';
+  }).join('');
+}
+function cartItems(){
+  return MENU.filter(function(m){return cart[m.id]}).map(function(m){return {id:m.id,name:m.name,emoji:m.emoji,price:m.price,qty:cart[m.id]}});
+}
+function cartTotals(){var it=cartItems();return {n:it.reduce(function(a,i){return a+i.qty},0),t:it.reduce(function(a,i){return a+i.qty*i.price},0)}}
+function renderCart(){
+  var it=cartItems(), tt=cartTotals();
+  $('#lines').innerHTML = it.length ? it.map(function(i){
+    return '<li><span class="nm">'+i.emoji+' '+esc(i.name)+'</span><span class="step"><button data-d="-1" data-id="'+i.id+'" aria-label="Retirer">−</button><span>'+i.qty+'</span><button data-d="1" data-id="'+i.id+'" aria-label="Ajouter">+</button></span><span class="sub">'+i.qty+' × '+fmt(i.price)+'</span><span class="sub" style="text-align:right">'+fmt(i.qty*i.price)+'</span></li>';
+  }).join('') : '<li class="empty">Votre panier est vide. Ajoutez un plat depuis le menu.</li>';
+  $('#total').textContent = fmt(tt.t);
+  var bar=$('#cartbar');
+  bar.classList.toggle('on', tt.n>0);
+  $('#cbN').textContent = tt.n+' article'+(tt.n>1?'s':'')+' · Voir mon panier';
+  $('#cbT').textContent = fmt(tt.t);
+}
+function changeQty(id,d){
+  var q=(cart[id]||0)+d; if(q<=0)delete cart[id]; else cart[id]=Math.min(q,50);
+  renderMenu(); renderCart();
+}
+$('#chips').addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(!b)return;cat=b.dataset.c;renderChips();renderMenu()});
+function qtyClick(e){var b=e.target.closest('[data-d]');if(!b)return;changeQty(b.dataset.id,Number(b.dataset.d))}
+$('#menu').addEventListener('click',qtyClick);
+$('#lines').addEventListener('click',qtyClick);
+$('#cartbtn').addEventListener('click',function(){$('#side').scrollIntoView({behavior:'smooth',block:'start'})});
+
+/* position GPS (fonctionne quand la page est ouverte dans un navigateur normal) */
+var gpsCoords=null;
+$('#gps').addEventListener('click',function(){
+  var note=$('#gpsNote');
+  if(!navigator.geolocation){note.textContent='Position indisponible : décrivez votre adresse dans le champ ci-dessus.';return}
+  note.textContent='Recherche de votre position…';
+  try{
+    navigator.geolocation.getCurrentPosition(function(p){
+      gpsCoords={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};
+      note.textContent='Position GPS enregistrée. Ajoutez quand même un repère dans l\'adresse.';
+    },function(){note.textContent='Position refusée ou indisponible : décrivez votre adresse dans le champ ci-dessus.'},{enableHighAccuracy:true,timeout:12000});
+  }catch(e){note.textContent='Position indisponible : décrivez votre adresse dans le champ ci-dessus.'}
+});
+
+/* envoi de la commande */
+function newOrder(customer,items,test){
+  var id = (window.crypto&&crypto.randomUUID)?crypto.randomUUID():('o'+Date.now()+Math.random().toString(16).slice(2));
+  var total=items.reduce(function(a,i){return a+i.qty*i.price},0);
+  return {id:id,number:'LF-'+String(Math.floor(1000+Math.random()*9000)),status:'nouvelle',createdAt:Date.now(),customer:customer,items:items,total:total,test:!!test};
+}
+$('#form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var err=$('#err'); err.textContent='';
+  var c={nom:$('#f-nom').value.trim(),prenom:$('#f-prenom').value.trim(),tel:$('#f-tel').value.trim(),loc:$('#f-loc').value.trim(),note:$('#f-note').value.trim(),gps:gpsCoords};
+  var items=cartItems();
+  if(!items.length){err.textContent='Ajoutez au moins un plat à votre commande.';return}
+  if(!c.nom||!c.prenom){err.textContent='Indiquez votre nom et votre prénom.';return}
+  if(c.tel.replace(/\D/g,'').length<8){err.textContent='Indiquez un numéro de téléphone valide, par exemple 77 000 00 00.';return}
+  if(c.loc.length<8){err.textContent='Décrivez votre localisation exacte : quartier, rue et point de repère.';return}
+  var btn=$('#send'); btn.disabled=true; btn.textContent='Envoi en cours…';
+  try{
+    await storeReady;
+    var o=newOrder(c,items,false);
+    await store.create(o);
+    lsSet('lf_client',JSON.stringify({nom:c.nom,prenom:c.prenom,tel:c.tel}));
+    cart={}; renderMenu(); renderCart(); showConfirmation(o);
+  }catch(x){
+    err.textContent='La commande n\'a pas pu être envoyée. Vérifiez votre connexion et réessayez.';
+    btn.disabled=false; btn.textContent='Envoyer ma commande';
+  }
+});
+
+var STEPS=[['nouvelle','Commande reçue'],['preparation','En préparation'],['prete','Prête, en route vers vous'],['livree','Livrée']];
+function showConfirmation(o){
+  if(lastOrderUnsub){lastOrderUnsub();lastOrderUnsub=null}
+  $('#side').innerHTML='<div class="ok"><span class="pill">Commande envoyée</span><div class="num">'+esc(o.number)+'</div>'+
+    '<div>Merci '+esc(o.customer.prenom)+'. Le restaurant a reçu votre commande. Gardez votre téléphone à portée de main, on peut vous appeler.</div>'+
+    '<ul class="lines" style="width:100%">'+o.items.map(function(i){return '<li><span class="nm">'+i.emoji+' '+i.qty+' × '+esc(i.name)+'</span><span class="sub">'+fmt(i.qty*i.price)+'</span></li>'}).join('')+'</ul>'+
+    '<div class="total" style="width:100%"><span>À payer à la livraison</span><span>'+fmt(o.total)+'</span></div>'+
+    '<div class="hint" id="oNotify">'+esc(notifyInit(o))+'</div>'+rwaBtn(o)+'<ul class="track" id="track"></ul><button class="btn ghost" id="again">Passer une autre commande</button></div>';
+  function paint(st){
+    var idx=STEPS.map(function(s){return s[0]}).indexOf(st);
+    if(st==='annulee'){$('#track').innerHTML='<li class="now"><i></i>Commande annulée par le restaurant. Appelez-nous pour plus d\'informations.</li>';return}
+    $('#track').innerHTML=STEPS.map(function(s,i){return '<li class="'+(i<idx||st==='livree'?'done':(i===idx?'now':''))+'"><i></i>'+s[1]+'</li>'}).join('');
+  }
+  paint('nouvelle');
+  lastOrderUnsub=store.watch(o.id,paint);
+  notifyClient(o,'oNotify');
+  $('#again').addEventListener('click',function(){location.reload()});
+  $('#side').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===== Client : réservation de table ===== */
+var RC=CFG.RESERVATION, rs={guests:2,time:'',area:'Peu importe'}, resaUnsub=null, rcart={}, rcat='Tous';
+function slotsFor(dateStr){
+  var out=[], oh=RC.open.split(':'), ch=RC.close.split(':');
+  var s=+oh[0]*60+ +oh[1], e=+ch[0]*60+ +ch[1];
+  var now=new Date(), isToday=dateStr===ymd(now), minM=now.getHours()*60+now.getMinutes()+RC.preavisMin;
+  for(var m=s;m<=e;m+=RC.pas){ if(isToday&&m<minM)continue; out.push(pad(Math.floor(m/60))+':'+pad(m%60)); }
+  return out;
+}
+function updSum(){
+  var s=$('#r-date').value;
+  $('#sumDate').textContent=s?longDate(s):'—';
+  $('#sumTime').textContent=rs.time||'—';
+  $('#sumGuests').textContent=rs.guests+' personne'+(rs.guests>1?'s':'');
+  $('#sumArea').textContent=rs.area;
+  renderSumConso();
+}
+function renderSlots(){
+  var s=$('#r-date').value, el=$('#r-slots');
+  if(!s){el.innerHTML='<span class="hint">Choisissez d\'abord une date.</span>';updSum();return}
+  var closed=RC.fermes.indexOf(new Date(s+'T12:00:00').getDay())>=0;
+  var sl=closed?[]:slotsFor(s);
+  if(rs.time&&sl.indexOf(rs.time)<0)rs.time='';
+  if(!sl.length){
+    el.innerHTML='<span class="hint">'+(closed?'Le restaurant est fermé ce jour-là.':'Plus de créneau disponible ce jour-là. Choisissez une autre date.')+'</span>';
+    updSum();return;
+  }
+  function grp(t,arr){return arr.length?'<div class="sec"><span class="hint">'+t+'</span><div class="slots">'+arr.map(function(h){return '<button type="button" class="chip" data-h="'+h+'" aria-pressed="'+(h===rs.time)+'">'+h+'</button>'}).join('')+'</div></div>':''}
+  el.innerHTML=grp('Midi',sl.filter(function(h){return h<'16:00'}))+grp('Soir',sl.filter(function(h){return h>='16:00'}));
+  updSum();
+}
+function renderGuests(){
+  $('#gVal').textContent=rs.guests;
+  $('#gMinus').disabled=rs.guests<=1;$('#gPlus').disabled=rs.guests>=RC.maxPers;
+  $('#gHint').textContent=rs.guests>=RC.maxPers?'Pour plus de '+RC.maxPers+' personnes, appelez-nous directement.':'';
+  updSum();
+}
+function initResa(){
+  var now=new Date(), d=$('#r-date');
+  d.min=ymd(now); d.max=ymd(new Date(now.getTime()+RC.joursMax*864e5));
+  var v=ymd(now); if(!slotsFor(v).length)v=ymd(new Date(now.getTime()+864e5));
+  d.value=v;
+  var J=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  $('#rInfo').innerHTML='<span>🕒 Ouvert de '+RC.open.replace(':','h')+' à '+RC.close.replace(':','h')+(RC.fermes.length?' · fermé le '+RC.fermes.map(function(i){return J[i]}).join(', '):' · 7j/7')+'</span><span>📍 Grand Mbour, Mbour</span><span>Réservation possible jusqu\'à '+RC.preavisMin+' min avant l\'arrivée.</span>';
+  try{var c=JSON.parse(lsGet('lf_client')||'null');if(c){$('#r-nom').value=c.nom||'';$('#r-prenom').value=c.prenom||'';$('#r-tel').value=c.tel||''}}catch(e){}
+  renderSlots();renderGuests();renderRChips();renderRMenu();
+}
+$('#r-date').addEventListener('change',renderSlots);
+$('#gMinus').addEventListener('click',function(){if(rs.guests>1){rs.guests--;renderGuests()}});
+$('#gPlus').addEventListener('click',function(){if(rs.guests<RC.maxPers){rs.guests++;renderGuests()}});
+$('#r-slots').addEventListener('click',function(e){var b=e.target.closest('[data-h]');if(!b)return;rs.time=b.dataset.h;renderSlots()});
+$('#r-area').addEventListener('click',function(e){
+  var b=e.target.closest('[data-a]');if(!b)return;rs.area=b.dataset.a;
+  document.querySelectorAll('#r-area .chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});updSum();
+});
+function rItems(){return MENU.filter(function(m){return rcart[m.id]}).map(function(m){return {id:m.id,name:m.name,emoji:m.emoji,price:m.price,qty:rcart[m.id]}})}
+function itemsTotal(it){return it.reduce(function(a,i){return a+i.qty*i.price},0)}
+function renderRChips(){
+  $('#rchips').innerHTML=CATS.map(function(c){return '<button type="button" class="chip" data-rc="'+esc(c)+'" aria-pressed="'+(c===rcat)+'">'+esc(c)+'</button>'}).join('');
+}
+function renderRMenu(){
+  $('#rmenu').innerHTML=MENU.filter(function(m){return rcat==='Tous'||m.cat===rcat}).map(function(m){
+    var q=rcart[m.id]||0;
+    var ctl=q?'<span class="step"><button type="button" data-rd="-1" data-id="'+m.id+'" aria-label="Retirer un '+esc(m.name)+'">−</button><span>'+q+'</span><button type="button" data-rd="1" data-id="'+m.id+'" aria-label="Ajouter un '+esc(m.name)+'">+</button></span>'
+             :'<button type="button" class="btn small" data-rd="1" data-id="'+m.id+'">Ajouter</button>';
+    return '<div class="rrow"><span class="rpic" aria-hidden="true">'+m.emoji+'</span><span class="rnm"><b>'+esc(m.name)+'</b><small>'+fmt(m.price)+'</small></span>'+ctl+'</div>';
+  }).join('');
+  renderSumConso();
+}
+function renderSumConso(){
+  var el=$('#sumConso');if(!el)return;
+  var it=rItems();
+  el.innerHTML=it.length?'<div><span class="hint">Consommation prévue</span>'+it.map(function(i){return '<div class="sumline"><span>'+i.emoji+' '+i.qty+' × '+esc(i.name)+'</span><b>'+fmt(i.qty*i.price)+'</b></div>'}).join('')+'<div class="sumline"><span><b>Total à régler sur place</b></span><b>'+fmt(itemsTotal(it))+'</b></div></div>'
+    :'<div class="hint">Aucune consommation choisie : vous pourrez commander sur place.</div>';
+}
+$('#rchips').addEventListener('click',function(e){var b=e.target.closest('[data-rc]');if(!b)return;rcat=b.dataset.rc;renderRChips();renderRMenu()});
+$('#rmenu').addEventListener('click',function(e){
+  var b=e.target.closest('[data-rd]');if(!b)return;
+  var id=b.dataset.id, q=(rcart[id]||0)+Number(b.dataset.rd);
+  if(q<=0)delete rcart[id];else rcart[id]=Math.min(q,50);
+  renderRMenu();
+});
+function consoHtml(o){
+  if(!o.items||!o.items.length)return '';
+  return '<div style="width:100%"><span class="hint">Consommation prévue</span>'+o.items.map(function(i){return '<div class="sumline"><span>'+i.emoji+' '+i.qty+' × '+esc(i.name)+'</span><b>'+fmt(i.qty*i.price)+'</b></div>'}).join('')+'<div class="sumline"><span><b>Total à régler sur place</b></span><b>'+fmt(o.total)+'</b></div></div>';
+}
+function newResa(customer,resa,test,items){
+  items=items||[];
+  return {id:uid(),number:'RS-'+String(Math.floor(1000+Math.random()*9000)),kind:'reservation',status:'nouvelle',createdAt:Date.now(),customer:customer,resa:resa,items:items,total:itemsTotal(items),test:!!test};
+}
+$('#rform').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var err=$('#r-err');err.textContent='';
+  var date=$('#r-date').value;
+  var c={nom:$('#r-nom').value.trim(),prenom:$('#r-prenom').value.trim(),tel:$('#r-tel').value.trim(),email:$('#r-mail').value.trim(),note:$('#r-note').value.trim()};
+  if(!date||date<ymd(new Date())){err.textContent='Choisissez une date valide.';return}
+  if(!rs.time){err.textContent='Choisissez une heure d\'arrivée.';return}
+  if(slotsFor(date).indexOf(rs.time)<0){err.textContent='Ce créneau n\'est plus disponible. Choisissez une autre heure.';renderSlots();return}
+  if(!c.nom||!c.prenom){err.textContent='Indiquez votre nom et votre prénom.';return}
+  if(c.tel.replace(/\D/g,'').length<8){err.textContent='Indiquez un numéro WhatsApp valide, par exemple 77 000 00 00.';return}
+  if(c.email&&!/^\S+@\S+\.\S+$/.test(c.email)){err.textContent='L\'adresse email semble incorrecte.';return}
+  var btn=$('#r-send');btn.disabled=true;btn.textContent='Envoi en cours…';
+  try{
+    await storeReady;
+    var o=newResa(c,{date:date,time:rs.time,guests:rs.guests,area:rs.area,occasion:$('#r-occ').value},false,rItems());
+    await store.create(o);
+    lsSet('lf_client',JSON.stringify({nom:c.nom,prenom:c.prenom,tel:c.tel}));
+    showResaConfirmation(o);
+    btn.disabled=false;btn.textContent='Envoyer ma demande de réservation';
+  }catch(x){
+    err.textContent='La demande n\'a pas pu être envoyée. Vérifiez votre connexion et réessayez.';
+    btn.disabled=false;btn.textContent='Envoyer ma demande de réservation';
+  }
+});
+var RSTEPS=[['nouvelle','Demande reçue, en attente de confirmation'],['preparation','Table confirmée'],['livree','Merci de votre visite']];
+function showResaConfirmation(o){
+  if(resaUnsub){resaUnsub();resaUnsub=null}
+  var r=o.resa;
+  $('#rside').innerHTML='<div class="ok"><span class="pill">Demande envoyée</span><div class="num">'+esc(o.number)+'</div>'+
+    '<div>Merci '+esc(o.customer.prenom)+'. Le restaurant a reçu votre demande. La confirmation de votre table arrive sur WhatsApp.</div>'+
+    '<div style="width:100%"><div class="sumline"><span>Date</span><b>'+esc(longDate(r.date))+'</b></div><div class="sumline"><span>Heure</span><b>'+esc(r.time)+'</b></div><div class="sumline"><span>Personnes</span><b>'+r.guests+'</b></div><div class="sumline"><span>Emplacement</span><b>'+esc(r.area)+'</b></div>'+(r.occasion&&r.occasion!=='Aucune'?'<div class="sumline"><span>Occasion</span><b>'+esc(r.occasion)+'</b></div>':'')+'</div>'+
+    consoHtml(o)+'<div class="hint" id="rNotify">'+esc(notifyInit(o))+'</div>'+rwaBtn(o)+
+    '<ul class="track" id="rtrack"></ul><button class="btn ghost" id="rAgain">Faire une autre réservation</button></div>';
+  function paint(st){
+    if(st==='annulee'){$('#rtrack').innerHTML='<li class="now"><i></i>Le restaurant ne peut pas honorer cette demande. Il va vous contacter pour proposer un autre horaire.</li>';return}
+    var idx=RSTEPS.map(function(s){return s[0]}).indexOf(st);
+    $('#rtrack').innerHTML=RSTEPS.map(function(s,i){return '<li class="'+(i<idx||st==='livree'?'done':(i===idx?'now':''))+'"><i></i>'+s[1]+'</li>'}).join('');
+  }
+  paint('nouvelle');
+  resaUnsub=store.watch(o.id,paint);
+  notifyClient(o,'rNotify');
+  $('#rAgain').addEventListener('click',function(){location.reload()});
+  $('#rside').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===== Restaurant ===== */
+var orders=[], resas=[], known={}, firstLoad=true, soundOn=false, actx=null, loopT=null, unsubOrders=null, filt='cours', titleT=null, baseTitle='LIBERTY FOOD';
+
+function tone(f,t0,d){
+  var o=actx.createOscillator(),g=actx.createGain();
+  o.type='sine';o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(0.4,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  o.connect(g);g.connect(actx.destination);o.start(t0);o.stop(t0+d+0.05);
+}
+function ring(){
+  if(!actx)return;
+  try{var t=actx.currentTime;[[988,0],[1319,.25],[988,.7],[1319,.95]].forEach(function(p){tone(p[0],t+p[1],.4)})}catch(e){}
+}
+function speak(txt){
+  try{var u=new SpeechSynthesisUtterance(txt||'Nouvelle commande');u.lang='fr-FR';speechSynthesis.speak(u)}catch(e){}
+}
+function enableSound(){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.resume)actx.resume();
+    soundOn=true; ring(); updateSoundBtn(); updateAlertLoop();
+  }catch(e){toast('Le son n\'est pas disponible sur ce navigateur.')}
+}
+function updateSoundBtn(){
+  var b=$('#soundBtn');
+  b.textContent = soundOn ? '🔔 Alertes sonores activées (toucher pour couper)' : '🔕 Activer les alertes sonores';
+  b.className = soundOn ? 'btn good' : 'btn';
+}
+$('#soundBtn').addEventListener('click',function(){
+  if(soundOn){soundOn=false;updateSoundBtn();updateAlertLoop()}else enableSound();
+});
+
+function pendingO(){return orders.filter(function(o){return o.status==='nouvelle'}).length}
+function pendingR(){return resas.filter(function(o){return o.status==='nouvelle'}).length}
+function pending(){return pendingO()+pendingR()}
+function updateAlertLoop(){
+  var n=pending();
+  $('#tabBadge').style.display = n? 'inline-block':'none'; $('#tabBadge').textContent=n;
+  var al=$('#alert');
+  al.style.display = n? 'block':'none';
+  var no=pendingO(), nr=pendingR();
+  al.textContent = n? '🔔 '+(no?no+' commande'+(no>1?'s':'')+' à accepter':'')+(no&&nr?' · ':'')+(nr?nr+' réservation'+(nr>1?'s':'')+' à confirmer':'')+(soundOn?'':' · activez le son pour être alerté') : '';
+  if(n&&soundOn){ if(!loopT){loopT=setInterval(function(){if(pending()&&soundOn)ring()},6000)} }
+  else if(loopT){clearInterval(loopT);loopT=null}
+  if(n){ if(!titleT){var on=false;titleT=setInterval(function(){on=!on;document.title=on?'🔔 ('+pending()+') Nouvelle alerte':baseTitle},1000)} }
+  else if(titleT){clearInterval(titleT);titleT=null;document.title=baseTitle}
+}
+
+function onOrders(list){
+  var all=list.slice().sort(function(a,b){return b.createdAt-a.createdAt});
+  orders=all.filter(function(o){return o.kind!=='reservation'});
+  resas=all.filter(function(o){return o.kind==='reservation'});
+  var fresh=all.filter(function(o){return o.status==='nouvelle'&&!known[o.id]});
+  all.forEach(function(o){known[o.id]=1});
+  if(!firstLoad&&fresh.length){
+    var isR=fresh[0].kind==='reservation';
+    if(soundOn){ring();setTimeout(function(){speak(isR?'Nouvelle réservation':'Nouvelle commande')},1400)}
+    toast((isR?'Nouvelle réservation de ':'Nouvelle commande de ')+fresh[0].customer.prenom+' '+fresh[0].customer.nom);
+  }
+  firstLoad=false;
+  renderOrders(); renderResas(); updateAlertLoop();
+}
+function ago(ts){var m=Math.round((Date.now()-ts)/60000);if(m<1)return 'à l\'instant';if(m<60)return 'il y a '+m+' min';var h=Math.floor(m/60);return 'il y a '+h+' h '+(m%60)+' min'}
+function mapLink(o){
+  var c=o.customer;
+  var q = c.gps ? c.gps.lat+','+c.gps.lng : encodeURIComponent(c.loc+', Mbour, Sénégal');
+  return 'https://www.google.com/maps/search/?api=1&query='+q;
+}
+function waLink(o,txt){
+  var d=String(o.customer.tel).replace(/\D/g,'');
+  if(d.length===9)d='221'+d;
+  return 'https://wa.me/'+d+(txt?'?text='+encodeURIComponent(txt):'');
+}
+function renderOrders(){
+  var start=new Date();start.setHours(0,0,0,0);
+  var today=orders.filter(function(o){return o.createdAt>=start.getTime()});
+  $('#sNew').textContent=pendingO();
+  $('#sDay').textContent=today.length;
+  $('#sCa').textContent=today.filter(function(o){return o.status!=='annulee'}).reduce(function(a,o){return a+o.total},0).toLocaleString('fr-FR').replace(/[  ]/g,' ');
+  var nAcc=orders.filter(function(o){return o.status==='preparation'||o.status==='prete'}).length;
+  $('#sAcc').textContent=nAcc;$('#cAcc').textContent=nAcc?'('+nAcc+')':'';
+  $('#cNew').textContent=pendingO()?'('+pendingO()+')':'';
+  var list=orders.filter(function(o){
+    var st=o.status;
+    if(filt==='fin')return st==='livree'||st==='annulee';
+    if(filt==='new')return st==='nouvelle';
+    if(filt==='acc')return st==='preparation'||st==='prete';
+    return st!=='livree'&&st!=='annulee';
+  });
+  var EMPTY={fin:'Aucune commande terminée pour le moment.',new:'Aucune nouvelle commande à accepter.',acc:'Aucune commande acceptée en ce moment.',cours:'Aucune commande en cours. Les nouvelles commandes apparaîtront ici avec un signal sonore.'};
+  if(!list.length){
+    $('#orders').innerHTML='<div class="empty" style="grid-column:1/-1">'+EMPTY[filt]+'</div>';return;
+  }
+  $('#orders').innerHTML=list.map(function(o){
+    var c=o.customer, acts='';
+    if(o.status==='nouvelle')acts='<button class="btn small" data-a="preparation" data-id="'+o.id+'">Accepter et préparer</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Refuser</button>';
+    else if(o.status==='preparation')acts='<button class="btn small" data-a="prete" data-id="'+o.id+'">Prête, en livraison</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Annuler</button>';
+    else if(o.status==='prete')acts='<button class="btn good small" data-a="livree" data-id="'+o.id+'">Livrée</button>';
+    return '<article class="ord'+(o.status==='nouvelle'?' fresh':'')+'">'+
+      '<header><span class="no">'+esc(o.number)+(o.test?' <small style="font-size:11px;color:var(--muted)">TEST</small>':'')+'</span><span class="pill '+o.status+'">'+STATUS_LABEL[o.status]+'</span></header>'+
+      '<div class="who">'+esc(c.prenom)+' '+esc(c.nom)+'</div>'+
+      '<div class="meta">Tél. '+esc(c.tel)+' · <a href="'+waLink(o,msgFor(o,o.status))+'" target="_blank" rel="noopener">WhatsApp (message prêt)</a></div>'+
+      '<div class="meta">📍 '+esc(c.loc)+' · <a href="'+mapLink(o)+'" target="_blank" rel="noopener">Ouvrir la carte</a>'+(c.gps?' (GPS)':'')+'</div>'+
+      (c.note?'<div class="meta">📝 '+esc(c.note)+'</div>':'')+
+      '<ul>'+o.items.map(function(i){return '<li><b>'+i.qty+' ×</b> '+i.emoji+' '+esc(i.name)+'</li>'}).join('')+'</ul>'+
+      '<div class="row"><span class="meta">'+ago(o.createdAt)+'</span><span class="price">'+fmt(o.total)+'</span></div>'+
+      '<div class="acts">'+acts+'<button class="btn ghost small" data-p="'+o.id+'">🖨️ Imprimer</button></div></article>';
+  }).join('');
+}
+async function actClick(e){
+  var b=e.target.closest('[data-a]');if(!b)return;
+  b.disabled=true;
+  var id=b.dataset.id, st=b.dataset.a, o=orders.concat(resas).filter(function(x){return x.id===id})[0];
+  try{
+    await store.update(id,st);
+    if(o)notify(o,st).then(function(ok){if(ok)toast('Message WhatsApp envoyé à '+o.customer.prenom)});
+  }catch(x){toast('Le changement n\'a pas été enregistré. Réessayez.');b.disabled=false}
+}
+$('#orders').addEventListener('click',actClick);
+$('#resaList').addEventListener('click',actClick);
+function printOrder(o){
+  var c=o.customer,d=new Date(o.createdAt);
+  var when=d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  $('#ticket').innerHTML='<h1>LIBERTY FOOD</h1><p class="c">Grand Mbour</p><hr>'+
+    '<p class="big">Commande '+esc(o.number)+'</p><p>'+when+'</p><hr>'+
+    '<p class="big">'+esc(c.prenom)+' '+esc(c.nom)+'</p><p>Tél : '+esc(c.tel)+'</p>'+
+    '<p><b>Adresse :</b> '+esc(c.loc)+'</p>'+(c.gps?'<p>GPS : '+c.gps.lat+', '+c.gps.lng+'</p>':'')+
+    (c.note?'<p><b>Précisions :</b> '+esc(c.note)+'</p>':'')+'<hr>'+
+    o.items.map(function(i){return '<div class="ln"><span>'+i.qty+' x '+esc(i.name)+'</span><span>'+fmt(i.qty*i.price)+'</span></div>'}).join('')+
+    '<hr><div class="ln tot"><span>À ENCAISSER</span><span>'+fmt(o.total)+'</span></div>'+
+    '<p class="c">Paiement à la livraison</p><hr><p class="c">Merci et bon appétit !</p>';
+  setTimeout(function(){try{window.print()}catch(e){toast('Impression indisponible sur ce navigateur.')}},60);
+}
+$('#orders').addEventListener('click',function(e){
+  var b=e.target.closest('[data-p]');if(!b)return;
+  var o=orders.filter(function(x){return x.id===b.dataset.p})[0];if(o)printOrder(o);
+});
+document.querySelector('.stat[data-f]').addEventListener('click',function(){document.querySelector('#fchips [data-f="acc"]').click()});
+$('#fchips').addEventListener('click',function(e){
+  var b=e.target.closest('[data-f]');if(!b)return;filt=b.dataset.f;
+  document.querySelectorAll('#fchips .chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});renderOrders();
+});
+$('#simBtn').addEventListener('click',async function(){
+  var m=MENU, pick=[m[Math.floor(Math.random()*m.length)],m[Math.floor(Math.random()*m.length)]];
+  var items=[{id:pick[0].id,name:pick[0].name,emoji:pick[0].emoji,price:pick[0].price,qty:1+Math.floor(Math.random()*2)}];
+  if(pick[1].id!==pick[0].id)items.push({id:pick[1].id,name:pick[1].name,emoji:pick[1].emoji,price:pick[1].price,qty:1});
+  var o=newOrder({nom:'Diop',prenom:'Awa',tel:'77 123 45 67',loc:'Grand Mbour, près du marché central',note:'Commande de test',gps:null},items,true);
+  try{await store.create(o)}catch(e){toast('Impossible de créer la commande de test.')}
+});
+$('#resetBtn').addEventListener('click',function(){if(store.reset){store.reset();known={}}});
+
+/* ===== Restaurant : réservations ===== */
+var resaFilt='avenir';
+var RESA_LABEL={nouvelle:'À confirmer',preparation:'Confirmée',livree:'Terminée',annulee:'Refusée'};
+var RESA_PILL={nouvelle:'nouvelle',preparation:'prete',livree:'livree',annulee:'annulee'};
+function resaTime(o){return new Date(o.resa.date+'T'+o.resa.time+':00').getTime()}
+function renderResas(){
+  var todayS=ymd(new Date());
+  var td=resas.filter(function(o){return o.status!=='annulee'&&o.resa.date===todayS});
+  var nNew=pendingR(), nO=pendingO(), nConf=resas.filter(function(o){return o.status==='preparation'}).length;
+  $('#rsNew').textContent=nNew;$('#rsConf').textContent=nConf;$('#rsDay').textContent=td.length;
+  $('#rsCov').textContent=td.reduce(function(a,o){return a+o.resa.guests},0);
+  $('#rcNew').textContent=nNew?'('+nNew+')':'';$('#rcConf').textContent=nConf?'('+nConf+')':'';
+  $('#pcR').textContent=nNew?'('+nNew+')':'';$('#pcO').textContent=nO?'('+nO+')':'';
+  var list=resas.filter(function(o){
+    var st=o.status;
+    if(resaFilt==='fin')return st==='livree'||st==='annulee';
+    if(resaFilt==='new')return st==='nouvelle';
+    if(resaFilt==='conf')return st==='preparation';
+    return st==='nouvelle'||st==='preparation';
+  });
+  list.sort(function(a,b){return resaFilt==='fin'?resaTime(b)-resaTime(a):resaTime(a)-resaTime(b)});
+  var EMPTY={avenir:'Aucune réservation à venir. Les nouvelles demandes apparaîtront ici avec un signal sonore.',new:'Aucune réservation à confirmer.',conf:'Aucune réservation confirmée à venir.',fin:'Aucune réservation terminée pour le moment.'};
+  if(!list.length){$('#resaList').innerHTML='<div class="empty" style="grid-column:1/-1">'+EMPTY[resaFilt]+'</div>';return}
+  $('#resaList').innerHTML=list.map(function(o){
+    var c=o.customer, r=o.resa, acts='';
+    if(o.status==='nouvelle')acts='<button class="btn small" data-a="preparation" data-id="'+o.id+'">Confirmer la table</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Refuser</button>';
+    else if(o.status==='preparation')acts='<button class="btn good small" data-a="livree" data-id="'+o.id+'">Client venu, terminée</button><button class="btn ghost small" data-a="annulee" data-id="'+o.id+'">Annuler</button>';
+    return '<article class="ord'+(o.status==='nouvelle'?' fresh':'')+'">'+
+      '<header><span class="no">'+esc(o.number)+(o.test?' <small style="font-size:11px;color:var(--muted)">TEST</small>':'')+'</span><span class="pill '+RESA_PILL[o.status]+'">'+RESA_LABEL[o.status]+'</span></header>'+
+      '<div class="who">'+esc(c.prenom)+' '+esc(c.nom)+'</div>'+
+      '<div class="meta">📅 <b>'+esc(longDate(r.date))+'</b> à <b>'+esc(r.time)+'</b>'+(r.date===todayS?' · <b style="color:var(--flame)">Aujourd\'hui</b>':'')+'</div>'+
+      '<div class="meta">👥 <b>'+r.guests+' personne'+(r.guests>1?'s':'')+'</b> · '+esc(r.area)+'</div>'+
+      (r.occasion&&r.occasion!=='Aucune'?'<div class="meta">🎉 '+esc(r.occasion)+'</div>':'')+
+      '<div class="meta">Tél. '+esc(c.tel)+(c.email?' · '+esc(c.email):'')+'</div>'+
+      (c.note?'<div class="meta">📝 '+esc(c.note)+'</div>':'')+
+      (o.items&&o.items.length?'<ul>'+o.items.map(function(i){return '<li><b>'+i.qty+' ×</b> '+i.emoji+' '+esc(i.name)+'</li>'}).join('')+'</ul><div class="row"><span class="meta">Consommation prévue</span><span class="price">'+fmt(o.total)+'</span></div>':'<div class="meta">Aucune consommation pré-choisie</div>')+
+      '<div class="row"><span class="meta">Reçue '+ago(o.createdAt)+'</span></div>'+
+      '<div class="acts">'+acts+'<button class="btn ghost small" data-p="'+o.id+'">🖨️ Imprimer la facture</button><a class="btn ghost small" href="'+waLink(o,msgFor(o,o.status))+'" target="_blank" rel="noopener">💬 WhatsApp</a></div></article>';
+  }).join('');
+}
+function printResa(o){
+  if(!o.items||!o.items.length){toast('Aucune consommation choisie pour cette réservation : rien à facturer.');return}
+  var c=o.customer,r=o.resa,d=new Date();
+  var now=d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  $('#ticket').innerHTML='<h1>LIBERTY FOOD</h1><p class="c">Grand Mbour</p><hr>'+
+    '<p class="big">FACTURE '+esc(o.number)+'</p><p>Éditée le '+now+'</p><hr>'+
+    '<p class="big">'+esc(c.prenom)+' '+esc(c.nom)+'</p><p>Tél : '+esc(c.tel)+'</p>'+
+    '<p><b>Réservation :</b> '+esc(longDate(r.date))+' à '+esc(r.time)+'</p>'+
+    '<p>'+r.guests+' personne'+(r.guests>1?'s':'')+' · '+esc(r.area)+'</p><hr>'+
+    o.items.map(function(i){return '<div class="ln"><span>'+i.qty+' x '+esc(i.name)+'</span><span>'+fmt(i.qty*i.price)+'</span></div>'}).join('')+
+    '<hr><div class="ln tot"><span>TOTAL À PAYER</span><span>'+fmt(o.total)+'</span></div>'+
+    '<p class="c">Règlement sur place</p><hr><p class="c">Merci de votre confiance !</p>';
+  setTimeout(function(){try{window.print()}catch(e){toast('Impression indisponible sur ce navigateur.')}},60);
+}
+$('#resaList').addEventListener('click',function(e){
+  var b=e.target.closest('[data-p]');if(!b)return;
+  var o=resas.filter(function(x){return x.id===b.dataset.p})[0];if(o)printResa(o);
+});
+$('#rfchips').addEventListener('click',function(e){
+  var b=e.target.closest('[data-rf]');if(!b)return;resaFilt=b.dataset.rf;
+  document.querySelectorAll('#rfchips .chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});renderResas();
+});
+$('#ptabs').addEventListener('click',function(e){
+  var b=e.target.closest('[data-t]');if(!b)return;
+  document.querySelectorAll('#ptabs .chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+  $('#paneOrders').hidden=b.dataset.t!=='orders';$('#paneResa').hidden=b.dataset.t!=='resa';
+});
+$('#simRBtn').addEventListener('click',async function(){
+  var date=ymd(new Date()), sl=slotsFor(date);
+  if(!sl.length){date=ymd(new Date(Date.now()+864e5));sl=slotsFor(date)}
+  var o=newResa({nom:'Ndiaye',prenom:'Fatou',tel:'77 987 65 43',email:'',note:'Réservation de test'},{date:date,time:sl[Math.min(4,sl.length-1)]||'19:00',guests:4,area:'Terrasse',occasion:'Anniversaire'},true,[{id:MENU[0].id,name:MENU[0].name,emoji:MENU[0].emoji,price:MENU[0].price,qty:2},{id:MENU[8].id,name:MENU[8].name,emoji:MENU[8].emoji,price:MENU[8].price,qty:2}]);
+  try{await store.create(o)}catch(e){toast('Impossible de créer la réservation de test.')}
+});
+
+/* accès restaurant */
+function openPanel(){
+  $('#gate').hidden=true;$('#panel').hidden=false;
+  if(!unsubOrders)unsubOrders=store.onOrders(onOrders);
+  updateSoundBtn();
+}
+$('#unlock').addEventListener('click',async function(){
+  await storeReady;
+  var er=$('#gateErr');er.textContent='';
+  if(store.needsLogin){
+    try{await store.login($('#mail').value.trim(),$('#pw').value);openPanel()}
+    catch(e){er.textContent='Email ou mot de passe incorrect.'}
+  }else{
+    if($('#pin').value===CFG.RESTAURANT_PIN){try{sessionStorage.setItem('lf_ok','1')}catch(e){}openPanel()}
+    else er.textContent='Code incorrect.';
+  }
+});
+['pin','pw'].forEach(function(id){$('#'+id).addEventListener('keydown',function(e){if(e.key==='Enter')$('#unlock').click()})});
+
+/* onglets */
+function show(which){
+  var r=which==='resto', demo=document.body.classList.contains('demo'); if(demo&&r)return;
+  $('#view-client').hidden=which!=='client';$('#view-resa').hidden=which!=='resa';$('#view-resto').hidden=demo?false:!r;
+  $('#tab-client').setAttribute('aria-selected',which==='client');$('#tab-resa').setAttribute('aria-selected',which==='resa');$('#tab-resto').setAttribute('aria-selected',r);
+  $('#cartbar').style.visibility=which==='client'?'visible':'hidden';
+  if(r){
+    storeReady.then(function(){
+      var ok=false;try{ok=sessionStorage.getItem('lf_ok')==='1'}catch(e){}
+      if(ok&&!store.needsLogin)openPanel();
+    });
+  }
+}
+$('#tab-client').addEventListener('click',function(){show('client')});
+$('#tab-resto').addEventListener('click',function(){show('resto')});
+$('#tab-resa').addEventListener('click',function(){show('resa')});
+
+/* guide WhatsApp : code de la fonction + bouton copier */
+(function(){
+  var code=document.getElementById('edgeCode').textContent.trim();
+  $('#edgePre').textContent=code;
+  $('#copyEdge').addEventListener('click',function(){
+    try{navigator.clipboard.writeText(code).then(function(){toast('Code copié')},function(){toast('Copie impossible : sélectionnez le code à la main.')})}
+    catch(e){toast('Copie impossible : sélectionnez le code à la main.')}
+  });
+})();
+
+/* démarrage */
+(function(){
+  try{var c=JSON.parse(lsGet('lf_client')||'null');if(c){$('#f-nom').value=c.nom||'';$('#f-prenom').value=c.prenom||'';$('#f-tel').value=c.tel||''}}catch(e){}
+  renderChips();renderMenu();renderCart();initResa();
+  if(location.hash==='#restaurant')show('resto');
+  if(location.hash==='#reservation')show('resa');
+  if(location.hash==='#demo'){
+    document.body.classList.add('demo');$('#view-client').hidden=false;$('#view-resto').hidden=false;
+    storeReady.then(function(){if(!store.needsLogin){try{sessionStorage.setItem('lf_ok','1')}catch(e){}openPanel()}});
+  }
+})();
+</script>
